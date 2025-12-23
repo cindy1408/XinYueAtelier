@@ -14,8 +14,7 @@ public class PatternService {
 
     public PatternService(
             PatternRepo patternRepository,
-            FileStorageService fileStorage
-    ) {
+            FileStorageService fileStorage) {
         this.patternRepository = patternRepository;
         this.fileStorage = fileStorage;
     }
@@ -24,8 +23,8 @@ public class PatternService {
             String title,
             PatternOrigin origin,
             MultipartFile pdf,
-            MultipartFile image
-    ) {
+            MultipartFile image,
+            Integer level) {
         String pdfPath = fileStorage.save(pdf);
         String imagePath = fileStorage.save(image);
 
@@ -34,6 +33,7 @@ public class PatternService {
         pattern.setOrigin(origin);
         pattern.setPdfPath(pdfPath);
         pattern.setImagePath(imagePath);
+        pattern.setLevel(level);
 
         return patternRepository.save(pattern);
     }

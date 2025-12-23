@@ -10,24 +10,23 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/patterns")
-@CrossOrigin(
-        origins = "http://localhost:5173",
-        methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS }
-)
+@CrossOrigin(origins = "http://localhost:5173", methods = { RequestMethod.GET, RequestMethod.POST,
+                RequestMethod.OPTIONS })
 public class PatternController {
-    private final PatternService patternService;
+        private final PatternService patternService;
 
-    public PatternController(PatternService patternService) {this.patternService = patternService;}
+        public PatternController(PatternService patternService) {
+                this.patternService = patternService;
+        }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Pattern> create(
-            @RequestParam MultipartFile patternPdf,
-            @RequestParam MultipartFile image,
-            @RequestParam String title,
-            @RequestParam PatternOrigin origin
-    ) {
-        return ResponseEntity.ok(
-                patternService.create(title, origin, patternPdf, image)
-        );
-    }
+        @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        public ResponseEntity<Pattern> create(
+                        @RequestParam MultipartFile patternPdf,
+                        @RequestParam MultipartFile image,
+                        @RequestParam String title,
+                        @RequestParam PatternOrigin origin,
+                        @RequestParam Integer level) {
+                return ResponseEntity.ok(
+                                patternService.create(title, origin, patternPdf, image, level));
+        }
 }
