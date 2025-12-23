@@ -1,33 +1,33 @@
 package com.xinyue.atelier.controller;
 
-import com.xinyue.atelier.dto.PatternUploadRequest;
+import com.xinyue.atelier.PatternOrigin;
 import com.xinyue.atelier.model.Pattern;
 import com.xinyue.atelier.service.PatternService;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/patterns")
+@CrossOrigin(
+        origins = "http://localhost:5173",
+        methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS }
+)
 public class PatternController {
     private final PatternService patternService;
 
     public PatternController(PatternService patternService) {this.patternService = patternService;}
 
-    @PostMapping
-    public ResponseEntity<Pattern> create(@RequestBody PatternUploadRequest request) {
-        Pattern pattern = new Pattern();
-        pattern.setImg(request.img());
-        pattern.setTitle(request.title());
-        pattern.setOrigin(request.origin());
-        pattern.setLocation(request.location());
-        pattern.setLevel(request.level());
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(patternService.create(pattern));
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Pattern> create(
+            @RequestParam MultipartFile patternPdf,
+            @RequestParam MultipartFile image,
+            @RequestParam String title,
+            @RequestParam PatternOrigin origin
+    ) {
+        return ResponseEntity.ok(
+                patternService.create(title, origin, patternPdf, image)
+        );
     }
 }

@@ -15,11 +15,11 @@ public class Pattern {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private String img;
+    private String imagePath;
 
     private String title;
 
-    private String location;
+    private String pdfPath;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
