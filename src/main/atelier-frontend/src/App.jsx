@@ -1,6 +1,7 @@
 import viteLogo from '/vite.svg'
 import './App.css'
 import PatternUpload from './components/PatternUpload'
+import CreateDirectory from './components/CreateDirectory'
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <PatternUpload />
+      <CreateDirectory />
     </>
   )
 }
