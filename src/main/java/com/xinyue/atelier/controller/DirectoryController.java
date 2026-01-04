@@ -45,6 +45,29 @@ public class DirectoryController {
         }
     }
 
+    @GetMapping("/{folderName}/files")
+    public List<String> listFiles(@PathVariable String folderName) {
+        System.out.println("LIST FILES FOR: " + folderName);
+        try {
+            Path folderPath = Path.of(UPLOAD_DIR, folderName);
+
+            if (!Files.exists(folderPath) || !Files.isDirectory(folderPath)) {
+                return List.of();
+            }
+
+            try (Stream<Path> paths = Files.list(folderPath)) {
+                return paths
+                        .filter(Files::isRegularFile)
+                        .map(Path::getFileName)
+                        .map(Path::toString)
+                        .toList();
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to list files", e);
+        }
+    }
+
     @PostMapping("/{folderName}")
     public String createDirectory(@PathVariable String folderName) {
         Path path = fileStorageService.createDirectory(folderName);
