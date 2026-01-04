@@ -21,20 +21,13 @@ public class PatternService {
 
     public Pattern create(
             String title,
-            PatternOrigin origin,
             MultipartFile pdf,
-            MultipartFile image,
-            Integer level,
             String subDirectory) {
         String pdfPath = fileStorage.save(pdf, subDirectory);
-        String imagePath = fileStorage.save(image, subDirectory);
 
         Pattern pattern = new Pattern();
         pattern.setTitle(title);
-        pattern.setOrigin(origin);
         pattern.setPdfPath(pdfPath);
-        pattern.setImagePath(imagePath);
-        pattern.setLevel(level);
 
         return patternRepository.save(pattern);
     }

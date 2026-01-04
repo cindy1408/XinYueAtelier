@@ -1,7 +1,11 @@
 package com.xinyue.atelier.controller;
 
+import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.service.FileStorageService;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,7 +51,6 @@ public class DirectoryController {
 
     @GetMapping("/{folderName}/files")
     public List<String> listFiles(@PathVariable String folderName) {
-        System.out.println("LIST FILES FOR: " + folderName);
         try {
             Path folderPath = Path.of(UPLOAD_DIR, folderName);
 
@@ -68,9 +71,15 @@ public class DirectoryController {
         }
     }
 
-    @PostMapping("/{folderName}")
-    public String createDirectory(@PathVariable String folderName) {
-        Path path = fileStorageService.createDirectory(folderName);
-        return "Directory created at: " + path.toAbsolutePath();
+    @PostMapping(value= "/{folderName}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Folder> createDirectory(
+            @PathVariable String folderName,
+            @RequestParam("title") String title,
+            @RequestParam("origin") String origin,
+            @RequestParam("level") Integer level,
+            @RequestParam("image") MultipartFile image
+    ) {
+        Folder folder = fileStorageService.createDirectory(folderName, title, origin, level, image);
+        return ResponseEntity.ok(folder);
     }
 }

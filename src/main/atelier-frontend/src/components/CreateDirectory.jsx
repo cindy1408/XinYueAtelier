@@ -1,34 +1,99 @@
 import { useState } from "react";
 
 function CreateDirectory() {
-    const [name, setName] = useState("");
+    const [title, setTitle] = useState("");
+    const [level, setLevel] = useState("");
+    const [origin, setOrigin] = useState("DRAFTED");
+    const [image, setImage] = useState(null);
+    const [loading, setLoading] = useState(false);
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!name) return alert("Please enter a folder name");
+        if (!title) return alert("Please enter a folder name");
+        if (!image) return alert("Please select a cover image");
 
+        setLoading(true);
 
-        const response = await fetch(`http://localhost:8080/directory/${name}`, {
-            method: "POST",
-        });
+        const formData = new FormData();
+        formData.append("title", title);
+        formData.append("level", level);
+        formData.append("origin", origin);
+        formData.append("image", image); 
 
-        if (response.ok) {
-            alert("Directory created");
-        } else {
-            alert("Failed to create directory");
+    
+        try {
+            const response = await fetch(
+                `http://localhost:8080/directory/${title}`,
+                {
+                    method: "POST",
+                    body: formData,
+                }
+            );
+
+            if (response.ok) {
+                alert("Folder created successfully!");
+                setTitle("");
+                setLevel("");
+                setOrigin("DRAFTED");
+                setImage(null);
+            } else {
+                const errText = await response.text();
+                alert("Failed to create folder: " + errText);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error creating folder");
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <form onSubmit={handleSubmit}>
-            <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Folder name"
-            />
-            <button type="submit">Create Directory</button>
+            <h2>Create Folder</h2>
+
+            <label>
+                Folder Name
+                <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
+                />
+            </label>
+
+            <label>
+                Origin
+                <select value={origin} onChange={(e) => setOrigin(e.target.value)}>
+                    <option value="DRAFTED">Drafted</option>
+                    <option value="ACQUIRED">Acquired</option>
+                </select>
+            </label>
+
+            <label>
+                Level
+                <input
+                    type="text"
+                    value={level}
+                    onChange={(e) => setLevel(e.target.value)}
+                />
+            </label>
+
+            <label>
+                Cover Image
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImage(e.target.files[0])}
+                    required
+                />
+            </label>
+
+            <button type="submit" disabled={loading}>
+                {loading ? "Creating..." : "Create"}
+            </button>
         </form>
     );
 }

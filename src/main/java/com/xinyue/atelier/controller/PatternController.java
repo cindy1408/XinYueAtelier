@@ -1,6 +1,5 @@
 package com.xinyue.atelier.controller;
 
-import com.xinyue.atelier.PatternOrigin;
 import com.xinyue.atelier.model.Pattern;
 import com.xinyue.atelier.service.PatternService;
 import org.springframework.http.MediaType;
@@ -22,12 +21,9 @@ public class PatternController {
         @PostMapping(value = "/{folderName}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         public ResponseEntity<Pattern> create(
                         @RequestParam MultipartFile patternPdf,
-                        @RequestParam MultipartFile image,
                         @RequestParam String title,
-                        @RequestParam PatternOrigin origin,
-                        @RequestParam Integer level,
                         @PathVariable String folderName) {
                 return ResponseEntity.ok(
-                                patternService.create(title, origin, patternPdf, image, level, folderName));
+                                patternService.create(title, patternPdf, folderName));
         }
 }
