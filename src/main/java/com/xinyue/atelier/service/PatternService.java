@@ -24,9 +24,10 @@ public class PatternService {
             PatternOrigin origin,
             MultipartFile pdf,
             MultipartFile image,
-            Integer level) {
-        String pdfPath = fileStorage.save(pdf);
-        String imagePath = fileStorage.save(image);
+            Integer level,
+            String subDirectory) {
+        String pdfPath = fileStorage.save(pdf, subDirectory);
+        String imagePath = fileStorage.save(image, subDirectory);
 
         Pattern pattern = new Pattern();
         pattern.setTitle(title);

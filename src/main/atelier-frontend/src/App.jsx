@@ -1,20 +1,15 @@
-import viteLogo from '/vite.svg'
-import './App.css'
-import PatternUpload from './components/PatternUpload'
-import CreateDirectory from './components/CreateDirectory'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import FolderList from "./components/ListDirectories";
+import EachFolder from "./components/EachFolder";
 
 function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <PatternUpload />
-      <CreateDirectory />
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<FolderList />} />
+        <Route path="/:folderName" element={<EachFolder />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

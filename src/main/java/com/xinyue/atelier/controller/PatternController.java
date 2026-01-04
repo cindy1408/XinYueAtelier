@@ -25,8 +25,9 @@ public class PatternController {
                         @RequestParam MultipartFile image,
                         @RequestParam String title,
                         @RequestParam PatternOrigin origin,
-                        @RequestParam Integer level) {
+                        @RequestParam Integer level,
+                        @RequestParam("subDirectory") String subDirectory) {
                 return ResponseEntity.ok(
-                                patternService.create(title, origin, patternPdf, image, level));
+                                patternService.create(title, origin, patternPdf, image, level, subDirectory));
         }
 }

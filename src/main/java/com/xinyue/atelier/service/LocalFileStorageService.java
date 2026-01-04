@@ -12,19 +12,16 @@ import java.util.UUID;
 @Service
 public class LocalFileStorageService implements FileStorageService {
 
-    private static final String UPLOAD_DIR = "uploads";
+    public static final String UPLOAD_DIR = "uploads";
 
     @Override
-    public String save(MultipartFile file) {
+    public String save(MultipartFile file, String subDirectory) {
         try {
-            Files.createDirectories(Paths.get(UPLOAD_DIR));
+            Path dirPath = Paths.get(UPLOAD_DIR).resolve(subDirectory);
+            Files.createDirectories(dirPath);
 
-            String filename =
-                    UUID.randomUUID() + "_" + file.getOriginalFilename();
-
-            Path filePath = Paths.get(UPLOAD_DIR).resolve(filename);
-
-            Files.copy(file.getInputStream(), filePath);
+            Path filePath = dirPath.resolve(file.getOriginalFilename());
+            file.transferTo(filePath);
 
             return filePath.toString();
 
