@@ -45,9 +45,9 @@ public class DirectoryController {
         }
     }
 
-    @PostMapping("/{name}")
-    public String createDirectory(@PathVariable String name) {
-        Path path = fileStorageService.createDirectory(name);
+    @PostMapping("/{folderName}")
+    public String createDirectory(@PathVariable String folderName) {
+        Path path = fileStorageService.createDirectory(folderName);
         return "Directory created at: " + path.toAbsolutePath();
     }
 }

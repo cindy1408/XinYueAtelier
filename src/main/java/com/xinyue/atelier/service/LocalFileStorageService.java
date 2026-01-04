@@ -30,12 +30,11 @@ public class LocalFileStorageService implements FileStorageService {
         }
     }
 
-    public Path createDirectory(String directoryName) {
+    public Path createDirectory(String folderName) {
         try {
             Path uploadPath = Paths.get(UPLOAD_DIR);
             Files.createDirectories(uploadPath);
-
-            Path dirPath = uploadPath.resolve(directoryName);
+            Path dirPath = uploadPath.resolve(folderName);
             return  Files.createDirectories(dirPath);
         } catch (IOException e) {
             throw new RuntimeException("Failed to create directory", e);

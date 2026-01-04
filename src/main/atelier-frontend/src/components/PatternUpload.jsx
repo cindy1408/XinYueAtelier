@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 
 function PatternUpload() {
+    const { folderName } = useParams();
     const [title, setTitle] = useState("");
     const [level, setLevel] = useState("");
     const [origin, setOrigin] = useState("DRAFTED");
@@ -17,7 +19,7 @@ function PatternUpload() {
         formData.append("patternPdf", pdf);
         formData.append("image", image);
 
-        await fetch("http://localhost:8080/patterns", {
+        await fetch(`http://localhost:8080/patterns/${folderName}`, {
             method: "POST",
             body: formData,
         });

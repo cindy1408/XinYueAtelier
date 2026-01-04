@@ -19,15 +19,15 @@ public class PatternController {
                 this.patternService = patternService;
         }
 
-        @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @PostMapping(value = "/{folderName}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         public ResponseEntity<Pattern> create(
                         @RequestParam MultipartFile patternPdf,
                         @RequestParam MultipartFile image,
                         @RequestParam String title,
                         @RequestParam PatternOrigin origin,
                         @RequestParam Integer level,
-                        @RequestParam("subDirectory") String subDirectory) {
+                        @PathVariable String folderName) {
                 return ResponseEntity.ok(
-                                patternService.create(title, origin, patternPdf, image, level, subDirectory));
+                                patternService.create(title, origin, patternPdf, image, level, folderName));
         }
 }
