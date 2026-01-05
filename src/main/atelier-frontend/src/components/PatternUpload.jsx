@@ -19,6 +19,8 @@ function PatternUpload({ onUpload }) {
                 body: formData,
             });
             if (response.ok) {
+                setTitle("");
+                setPdf(null);
                 onUpload();
             } else {
                 const errText = await response.text();
