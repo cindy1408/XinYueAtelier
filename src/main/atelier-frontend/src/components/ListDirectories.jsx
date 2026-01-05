@@ -1,18 +1,7 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-function FolderList() {
-    const [folders, setFolders] = useState([]);
+function FolderList({ folders }) {
     const navigate = useNavigate();
-
-    useEffect(() => {
-        async function fetchFolders() {
-            const res = await fetch("http://localhost:8080/directory");
-            const data = await res.json();
-            setFolders(data);
-        }
-        fetchFolders();
-    }, []);
 
     return (
         <div>

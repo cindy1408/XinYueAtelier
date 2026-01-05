@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function CreateDirectory() {
+function CreateDirectory({ onCreated }) {
     const [title, setTitle] = useState("");
     const [level, setLevel] = useState("");
     const [origin, setOrigin] = useState("DRAFTED");
@@ -20,9 +20,9 @@ function CreateDirectory() {
         formData.append("title", title);
         formData.append("level", level);
         formData.append("origin", origin);
-        formData.append("image", image); 
+        formData.append("image", image);
 
-    
+
         try {
             const response = await fetch(
                 `http://localhost:8080/directory/${title}`,
@@ -33,7 +33,7 @@ function CreateDirectory() {
             );
 
             if (response.ok) {
-                alert("Folder created successfully!");
+                onCreated();
                 setTitle("");
                 setLevel("");
                 setOrigin("DRAFTED");
