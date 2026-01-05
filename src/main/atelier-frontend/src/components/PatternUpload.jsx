@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 
-function PatternUpload() {
+function PatternUpload({ onUpload }) {
     const { folderName } = useParams();
     const [title, setTitle] = useState("");
     const [pdf, setPdf] = useState(null);
@@ -13,11 +13,22 @@ function PatternUpload() {
         formData.append("title", title);
         formData.append("patternPdf", pdf);
 
-        await fetch(`http://localhost:8080/patterns/${folderName}`, {
-            method: "POST",
-            body: formData,
-        });
-
+        try {
+            const response = await fetch(`http://localhost:8080/patterns/${folderName}`, {
+                method: "POST",
+                body: formData,
+            });
+            if (response.ok) {
+                onUpload();
+            } else {
+                const errText = await response.text();
+                alert("Failed to create folder: " + errText);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error uploading pattern");
+            return;
+        }
         alert("Pattern uploaded");
     };
 

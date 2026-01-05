@@ -6,17 +6,21 @@ function EachFolder() {
     const { folderName } = useParams();
     const [files, setFiles] = useState([]);
 
-    useEffect(() => {
-        async function fetchFiles() {
+    const fetchFiles = async () => {
+        try {
             const res = await fetch(
                 `http://localhost:8080/directory/${folderName}/files`
             );
             const data = await res.json();
             setFiles(data);
+        } catch (err) {
+            console.error("Failed to fetch files", err);
         }
+    };
 
+    useEffect(() => {
         fetchFiles();
-    }, [folderName]);
+    }, [folderName]); 
 
     return (
         <div>
@@ -33,7 +37,9 @@ function EachFolder() {
                 </ul>
             )}
 
-            <PatternUpload />
+            <PatternUpload onUpload={() => {
+                fetchFiles();
+            }} />
         </div>
     );
 }
