@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 
 function PatternUpload({ onUpload }) {
-    const { folderName } = useParams();
+    const { folderId } = useParams();
     const [title, setTitle] = useState("");
     const [pdf, setPdf] = useState(null);
 
@@ -14,7 +14,7 @@ function PatternUpload({ onUpload }) {
         formData.append("patternPdf", pdf);
 
         try {
-            const response = await fetch(`http://localhost:8080/patterns/${folderName}`, {
+            const response = await fetch(`http://localhost:8080/patterns/${folderId}`, {
                 method: "POST",
                 body: formData,
             });

@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/patterns")
 @CrossOrigin(origins = "http://localhost:5173", methods = { RequestMethod.GET, RequestMethod.POST,
@@ -18,12 +20,12 @@ public class PatternController {
                 this.patternService = patternService;
         }
 
-        @PostMapping(value = "/{folderName}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        @PostMapping(value = "/{folderId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         public ResponseEntity<Pattern> create(
                         @RequestParam MultipartFile patternPdf,
                         @RequestParam String title,
-                        @PathVariable String folderName) {
+                        @PathVariable UUID folderId) {
                 return ResponseEntity.ok(
-                                patternService.create(title, patternPdf, folderName));
+                                patternService.create(title, patternPdf, folderId));
         }
 }

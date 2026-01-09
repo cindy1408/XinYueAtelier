@@ -17,4 +17,6 @@ public class Pattern {
     private String title;
 
     private String pdfPath;
+
+    private UUID folderId;
 }

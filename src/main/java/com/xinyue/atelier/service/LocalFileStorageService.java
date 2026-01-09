@@ -28,7 +28,7 @@ public class LocalFileStorageService implements FileStorageService {
             Path dirPath = Paths.get(UPLOAD_DIR).resolve(subDirectory);
             Files.createDirectories(dirPath);
 
-            Path filePath = dirPath.resolve(file.getOriginalFilename());
+            Path filePath = dirPath.resolve(file.getName());
             file.transferTo(filePath);
 
             return filePath.toString();
@@ -39,7 +39,6 @@ public class LocalFileStorageService implements FileStorageService {
     }
 
     public Folder createDirectory(
-            String folderName,
             String title,
             String origin,
             Integer level,
@@ -51,7 +50,7 @@ public class LocalFileStorageService implements FileStorageService {
                 Files.createDirectories(uploadPath);
             }
 
-            Path folderPath = uploadPath.resolve(folderName);
+            Path folderPath = uploadPath.resolve(title);
             if (!Files.exists(folderPath)) {
                 Files.createDirectories(folderPath);
             }
@@ -60,7 +59,6 @@ public class LocalFileStorageService implements FileStorageService {
             Path imagePath = folderPath.resolve(imageFileName);
 
             Folder folder = new Folder();
-            folder.setFolderName(folderName);
             folder.setFolderName(title);
             folder.setOrigin(PatternOrigin.valueOf(origin));
             folder.setLevel(level);
@@ -69,7 +67,7 @@ public class LocalFileStorageService implements FileStorageService {
             return folderRepo.save(folder);
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to create folder or save image: " + folderName, e);
+            throw new RuntimeException("Failed to create folder or save image: " + title, e);
         }
     }
 }

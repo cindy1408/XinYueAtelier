@@ -25,7 +25,7 @@ function CreateDirectory({ onCreated }) {
 
         try {
             const response = await fetch(
-                `http://localhost:8080/directory/${title}`,
+                `http://localhost:8080/directory`,
                 {
                     method: "POST",
                     body: formData,

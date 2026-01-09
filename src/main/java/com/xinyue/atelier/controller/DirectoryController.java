@@ -1,20 +1,17 @@
 package com.xinyue.atelier.controller;
 
 import com.xinyue.atelier.model.Folder;
+import com.xinyue.atelier.model.Pattern;
 import com.xinyue.atelier.respository.FolderRepo;
+import com.xinyue.atelier.respository.PatternRepo;
 import com.xinyue.atelier.service.FileStorageService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Stream;
-
-import static com.xinyue.atelier.service.LocalFileStorageService.UPLOAD_DIR;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/directory")
@@ -23,10 +20,12 @@ import static com.xinyue.atelier.service.LocalFileStorageService.UPLOAD_DIR;
 public class DirectoryController {
     private final FileStorageService fileStorageService;
     private final FolderRepo folderRepo;
+    private final PatternRepo patternRepo;
 
-    public DirectoryController(FileStorageService fileStorageService, FolderRepo folderRepo) {
+    public DirectoryController(FileStorageService fileStorageService, FolderRepo folderRepo, PatternRepo patternRepo) {
         this.fileStorageService = fileStorageService;
         this.folderRepo = folderRepo;
+        this.patternRepo = patternRepo;
     }
 
     @GetMapping
@@ -34,37 +33,19 @@ public class DirectoryController {
         return folderRepo.findAllFolderNames();
     }
 
-    @GetMapping("/{folderName}/files")
-    public List<String> listFiles(@PathVariable String folderName) {
-        try {
-            Path folderPath = Path.of(UPLOAD_DIR, folderName);
-
-            if (!Files.exists(folderPath) || !Files.isDirectory(folderPath)) {
-                return List.of();
-            }
-
-            try (Stream<Path> paths = Files.list(folderPath)) {
-                return paths
-                        .filter(Files::isRegularFile)
-                        .map(Path::getFileName)
-                        .map(Path::toString)
-                        .toList();
-            }
-
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to list files", e);
-        }
+    @GetMapping("/{folderId}/files")
+    public List<Pattern> listFiles(@PathVariable UUID folderId) {
+        return patternRepo.findByFolderId(folderId);
     }
 
-    @PostMapping(value= "/{folderName}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Folder> createDirectory(
-            @PathVariable String folderName,
             @RequestParam("title") String title,
             @RequestParam("origin") String origin,
             @RequestParam("level") Integer level,
             @RequestParam("image") MultipartFile image
     ) {
-        Folder folder = fileStorageService.createDirectory(folderName, title, origin, level, image);
+        Folder folder = fileStorageService.createDirectory(title, origin, level, image);
         return ResponseEntity.ok(folder);
     }
 }

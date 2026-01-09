@@ -3,13 +3,26 @@ import { useEffect, useState } from "react";
 import PatternUpload from "./PatternUpload";
 
 function EachFolder() {
-    const { folderName } = useParams();
+    const { folderId } = useParams();
+    const [folder, setFolder] = useState(null);
     const [files, setFiles] = useState([]);
+
+    const fetchFolder = async () => {
+        try {
+            const res = await fetch(
+                `http://localhost:8080/directory/${folderId}`
+            );
+            const data = await res.json();
+            setFolder(data);
+        } catch (err) {
+            console.error("Failed to fetch folder", err);
+        }
+    };
 
     const fetchFiles = async () => {
         try {
             const res = await fetch(
-                `http://localhost:8080/directory/${folderName}/files`
+                `http://localhost:8080/directory/${folderId}/files`
             );
             const data = await res.json();
             setFiles(data);
@@ -19,12 +32,13 @@ function EachFolder() {
     };
 
     useEffect(() => {
+        fetchFolder();
         fetchFiles();
-    }, [folderName]); 
+    }, [folderId]);
 
     return (
         <div>
-            <h2>Folder: {folderName}</h2>
+            <h2>Folder: {folder ? folder.folderName : "Loading..."}</h2>
 
             <h3>Files</h3>
             {files.length === 0 ? (
@@ -32,14 +46,12 @@ function EachFolder() {
             ) : (
                 <ul>
                     {files.map((file) => (
-                        <li key={file}>{file}</li>
+                        <li key={file}>{file.fileName}</li>
                     ))}
                 </ul>
             )}
 
-            <PatternUpload onUpload={() => {
-                fetchFiles();
-            }} />
+            <PatternUpload onUpload={() => { fetchFiles(); }} />
         </div>
     );
 }
