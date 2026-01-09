@@ -22,7 +22,7 @@ function EachFolder() {
     const fetchFiles = async () => {
         try {
             const res = await fetch(
-                `http://localhost:8080/directory/${folderId}/files`
+                `http://localhost:8080/patterns/${folderId}/files`
             );
             const data = await res.json();
             setFiles(data);
