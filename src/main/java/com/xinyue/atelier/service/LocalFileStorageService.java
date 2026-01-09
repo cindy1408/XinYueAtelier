@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.apache.commons.io.FilenameUtils;
 
 @Service
 public class LocalFileStorageService implements FileStorageService {
@@ -23,13 +24,18 @@ public class LocalFileStorageService implements FileStorageService {
 
     public static final String UPLOAD_DIR = "uploads";
 
-    @Override
-    public String save(MultipartFile file, String subDirectory) {
+    public String save(MultipartFile file, String subDirectory, String title) {
         try {
             Path dirPath = Paths.get(UPLOAD_DIR).resolve(subDirectory);
             Files.createDirectories(dirPath);
 
-            Path filePath = dirPath.resolve(file.getName());
+            String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+
+            String safeTitle = title.replaceAll("[^a-zA-Z0-9-_ ]", "_");
+            String filename = safeTitle + "." + extension;
+
+            Path filePath = dirPath.resolve(filename);
+
             file.transferTo(filePath);
 
             return filePath.toString();

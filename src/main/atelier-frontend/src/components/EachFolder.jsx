@@ -46,7 +46,7 @@ function EachFolder() {
             ) : (
                 <ul>
                     {files.map((file) => (
-                        <li key={file}>{file.fileName}</li>
+                        <li key={file.id}>{file.title}</li>
                     ))}
                 </ul>
             )}

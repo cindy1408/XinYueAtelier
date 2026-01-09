@@ -33,7 +33,7 @@ public class PatternService {
         Folder folder = folderRepo.findById(folderId)
                 .orElseThrow(() -> new RuntimeException("Folder not found"));
 
-        String pdfPath = fileStorage.save(pdf, folder.getFolderName());
+        String pdfPath = fileStorage.save(pdf, folder.getFolderName(), title);
         Pattern pattern = new Pattern();
         pattern.setFolderId(folderId);
         pattern.setTitle(title);
