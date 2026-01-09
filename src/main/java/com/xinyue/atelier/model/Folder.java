@@ -1,5 +1,6 @@
 package com.xinyue.atelier.model;
 
+import com.xinyue.atelier.Level;
 import com.xinyue.atelier.PatternOrigin;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -23,5 +24,7 @@ public class Folder {
     @Column(nullable = false)
     private PatternOrigin origin;
 
-    private Integer level;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Level level;
 }

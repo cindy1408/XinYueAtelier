@@ -4,3 +4,4 @@ public enum PatternOrigin {
     DRAFTED,
     ACQUIRED
 }
+

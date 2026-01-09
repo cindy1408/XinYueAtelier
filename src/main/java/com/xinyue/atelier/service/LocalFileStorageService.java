@@ -1,5 +1,6 @@
 package com.xinyue.atelier.service;
 
+import com.xinyue.atelier.Level;
 import com.xinyue.atelier.PatternOrigin;
 import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.respository.FolderRepo;
@@ -41,7 +42,7 @@ public class LocalFileStorageService implements FileStorageService {
     public Folder createDirectory(
             String title,
             String origin,
-            Integer level,
+            String level,
             MultipartFile image
     ) {
         try {
@@ -61,7 +62,7 @@ public class LocalFileStorageService implements FileStorageService {
             Folder folder = new Folder();
             folder.setFolderName(title);
             folder.setOrigin(PatternOrigin.valueOf(origin));
-            folder.setLevel(level);
+            folder.setLevel(Level.valueOf(level));
             folder.setImagePath(imagePath.toString());
 
             return folderRepo.save(folder);

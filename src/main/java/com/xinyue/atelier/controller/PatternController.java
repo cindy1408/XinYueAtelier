@@ -1,8 +1,6 @@
 package com.xinyue.atelier.controller;
 
-import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.model.Pattern;
-import com.xinyue.atelier.respository.FolderRepo;
 import com.xinyue.atelier.respository.PatternRepo;
 import com.xinyue.atelier.service.PatternService;
 import org.springframework.http.MediaType;

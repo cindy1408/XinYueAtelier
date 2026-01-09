@@ -39,7 +39,7 @@ public class DirectoryController {
     public ResponseEntity<Folder> createDirectory(
             @RequestParam("title") String title,
             @RequestParam("origin") String origin,
-            @RequestParam("level") Integer level,
+            @RequestParam("level") String level,
             @RequestParam("image") MultipartFile image
     ) {
         Folder folder = fileStorageService.createDirectory(title, origin, level, image);

@@ -6,5 +6,5 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface FileStorageService {
     String save(MultipartFile file, String subDirectory);
-    Folder createDirectory(String title, String origin, Integer level, MultipartFile image);
+    Folder createDirectory(String title, String origin, String level, MultipartFile image);
 }

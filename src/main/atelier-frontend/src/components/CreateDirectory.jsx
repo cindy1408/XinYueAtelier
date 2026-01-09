@@ -35,7 +35,7 @@ function CreateDirectory({ onCreated }) {
             if (response.ok) {
                 onCreated();
                 setTitle("");
-                setLevel("");
+                setLevel("BEGINNER");
                 setOrigin("DRAFTED");
                 setImage(null);
             } else {
@@ -74,11 +74,11 @@ function CreateDirectory({ onCreated }) {
 
             <label>
                 Level
-                <input
-                    type="text"
-                    value={level}
-                    onChange={(e) => setLevel(e.target.value)}
-                />
+                <select value={level} onChange={(e) => setLevel(e.target.value)}>
+                    <option value="BEGINNER">Beginner</option>
+                    <option value="INTERMEDIATE">Intermediate</option>
+                    <option value="ADVANCE">Advance</option>
+                </select>
             </label>
 
             <label>
