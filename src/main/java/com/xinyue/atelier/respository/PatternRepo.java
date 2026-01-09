@@ -9,5 +9,4 @@ import java.util.UUID;
 
 @Repository
 public interface PatternRepo extends JpaRepository<Pattern, UUID> {
-    List<Pattern> findByFolderId(UUID folderId);
 }

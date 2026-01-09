@@ -9,8 +9,8 @@ function FolderList({ folders }) {
             <ul>
                 {folders.map((folder) => (
                     <li key={folder}>
-                        <button onClick={() => navigate(`/${folder}`)}>
-                            {folder}
+                        <button onClick={() => navigate(`/${folder.id}`)}>
+                            {folder.folderName}
                         </button>
                     </li>
                 ))}

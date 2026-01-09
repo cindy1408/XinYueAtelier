@@ -1,9 +1,7 @@
 package com.xinyue.atelier.controller;
 
 import com.xinyue.atelier.model.Folder;
-import com.xinyue.atelier.model.Pattern;
 import com.xinyue.atelier.respository.FolderRepo;
-import com.xinyue.atelier.respository.PatternRepo;
 import com.xinyue.atelier.service.FileStorageService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -20,22 +19,20 @@ import java.util.UUID;
 public class DirectoryController {
     private final FileStorageService fileStorageService;
     private final FolderRepo folderRepo;
-    private final PatternRepo patternRepo;
 
-    public DirectoryController(FileStorageService fileStorageService, FolderRepo folderRepo, PatternRepo patternRepo) {
+    public DirectoryController(FileStorageService fileStorageService, FolderRepo folderRepo) {
         this.fileStorageService = fileStorageService;
         this.folderRepo = folderRepo;
-        this.patternRepo = patternRepo;
     }
 
     @GetMapping
-    public List<String> listDirectories() {
-        return folderRepo.findAllFolderNames();
+    public List<Folder> listDirectories() {
+        return folderRepo.findAll();
     }
 
-    @GetMapping("/{folderId}/files")
-    public List<Pattern> listFiles(@PathVariable UUID folderId) {
-        return patternRepo.findByFolderId(folderId);
+    @GetMapping("/{folderId}")
+    public Optional<Folder> getFolderById(@PathVariable UUID folderId) {
+        return folderRepo.findById(folderId);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

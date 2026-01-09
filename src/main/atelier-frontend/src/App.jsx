@@ -7,7 +7,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/:folderName" element={<EachFolder />} />
+        <Route path="/:folderId" element={<EachFolder />} />
       </Routes>
     </BrowserRouter>
   );
