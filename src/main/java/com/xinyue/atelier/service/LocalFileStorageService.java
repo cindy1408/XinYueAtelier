@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
+
 import org.apache.commons.io.FilenameUtils;
 
 @Service
@@ -22,7 +24,7 @@ public class LocalFileStorageService implements FileStorageService {
         this.folderRepo = folderRepo;
     }
 
-    public static final String UPLOAD_DIR = "uploads";
+    public static final String UPLOAD_DIR = "data";
 
     public String save(MultipartFile file, String subDirectory, String title) {
         try {
@@ -62,17 +64,21 @@ public class LocalFileStorageService implements FileStorageService {
                 Files.createDirectories(folderPath);
             }
 
-            String imageFileName = image.getOriginalFilename();
-            Path imagePath = folderPath.resolve(imageFileName);
+            String cleanFileName = Objects.requireNonNull(image.getOriginalFilename())
+                    .replaceAll("\\s+", "-");
+
+            Path imagePath = folderPath.resolve(cleanFileName);
+
+            image.transferTo(imagePath);
+            Path relativePath = uploadPath.relativize(imagePath);
 
             Folder folder = new Folder();
             folder.setFolderName(title);
             folder.setOrigin(PatternOrigin.valueOf(origin));
             folder.setLevel(Level.valueOf(level));
-            folder.setImagePath(imagePath.toString());
+            folder.setImagePath(relativePath.toString());
 
             return folderRepo.save(folder);
-
         } catch (IOException e) {
             throw new RuntimeException("Failed to create folder or save image: " + title, e);
         }
