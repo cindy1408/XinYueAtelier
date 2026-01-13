@@ -1,5 +1,6 @@
 package com.xinyue.atelier.service;
 
+import com.xinyue.atelier.GarmentType;
 import com.xinyue.atelier.Level;
 import com.xinyue.atelier.PatternOrigin;
 import com.xinyue.atelier.model.Folder;
@@ -49,6 +50,7 @@ public class LocalFileStorageService implements FileStorageService {
 
     public Folder createDirectory(
             String title,
+            String garmentType,
             String origin,
             String level,
             MultipartFile image
@@ -74,6 +76,7 @@ public class LocalFileStorageService implements FileStorageService {
 
             Folder folder = new Folder();
             folder.setFolderName(title);
+            folder.setGarmentType(GarmentType.valueOf(garmentType));
             folder.setOrigin(PatternOrigin.valueOf(origin));
             folder.setLevel(Level.valueOf(level));
             folder.setImagePath(relativePath.toString());

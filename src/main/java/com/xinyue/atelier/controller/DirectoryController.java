@@ -38,11 +38,12 @@ public class DirectoryController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Folder> createDirectory(
             @RequestParam("title") String title,
+            @RequestParam("garmentType") String garmentType,
             @RequestParam("origin") String origin,
             @RequestParam("level") String level,
             @RequestParam("image") MultipartFile image
     ) {
-        Folder folder = fileStorageService.createDirectory(title, origin, level, image);
+        Folder folder = fileStorageService.createDirectory(title,garmentType, origin, level, image);
         return ResponseEntity.ok(folder);
     }
 }

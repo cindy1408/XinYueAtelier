@@ -2,6 +2,7 @@ import { useState } from "react";
 
 function CreateDirectory({ onCreated }) {
     const [title, setTitle] = useState("");
+    const [garmentType, setGarmentType] = useState("");
     const [level, setLevel] = useState("");
     const [origin, setOrigin] = useState("DRAFTED");
     const [image, setImage] = useState(null);
@@ -18,6 +19,7 @@ function CreateDirectory({ onCreated }) {
 
         const formData = new FormData();
         formData.append("title", title);
+        formData.append("garmentType", garmentType);
         formData.append("level", level);
         formData.append("origin", origin);
         formData.append("image", image);
@@ -35,6 +37,7 @@ function CreateDirectory({ onCreated }) {
             if (response.ok) {
                 onCreated();
                 setTitle("");
+                setGarmentType("");
                 setLevel("BEGINNER");
                 setOrigin("DRAFTED");
                 setImage(null);
@@ -62,6 +65,21 @@ function CreateDirectory({ onCreated }) {
                     onChange={(e) => setTitle(e.target.value)}
                     required
                 />
+            </label>
+
+            <label>
+                Garment Type
+                <select value={garmentType} onChange={(e) => setGarmentType(e.target.value)}>
+                    <option value="ACCESSORY">Accessory</option>
+                    <option value="BLAZER">Blazer</option>
+                    <option value="BLOUSE">Blouse</option>
+                    <option value="BRIDAL">Bridal</option>
+                    <option value="DRESS">Dress</option>
+                    <option value="KNIT">Knit</option>
+                    <option value="OUTERWEAR">Outerwear</option>
+                    <option value="SKIRT">Skirt</option>
+                    <option value="UNDERWEAR">Underwear</option>
+                </select>
             </label>
 
             <label>

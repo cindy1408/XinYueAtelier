@@ -48,6 +48,7 @@ function FolderList({ folders }) {
                             }}
                         >
                             <span><strong>Title:</strong> {folder.folderName}</span>
+                            <span><strong>Garment Type:</strong> {folder.garmentType}</span>
                             <span><strong>Origin:</strong> {folder.origin}</span>
                             <span><strong>Level:</strong> {folder.level}</span>
                             <button

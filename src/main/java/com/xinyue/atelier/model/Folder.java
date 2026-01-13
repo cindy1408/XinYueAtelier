@@ -1,5 +1,6 @@
 package com.xinyue.atelier.model;
 
+import com.xinyue.atelier.GarmentType;
 import com.xinyue.atelier.Level;
 import com.xinyue.atelier.PatternOrigin;
 import jakarta.persistence.*;
@@ -27,4 +28,7 @@ public class Folder {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Level level;
+
+    @Enumerated(EnumType.STRING)
+    private GarmentType garmentType;
 }
