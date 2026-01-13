@@ -46,7 +46,19 @@ function EachFolder() {
             ) : (
                 <ul>
                     {files.map((file) => (
-                        <li key={file.id}>{file.title}</li>
+                        <li key={file.id}>
+                            {file.title}
+                            <button
+                                onClick={() =>
+                                    window.open(
+                                        `http://localhost:8080/patterns/download/${file.id}`,
+                                        "_blank"
+                                    )
+                                }
+                            >
+                                Download
+                            </button>
+                        </li>
                     ))}
                 </ul>
             )}

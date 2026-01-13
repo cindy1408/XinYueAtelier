@@ -3,11 +3,19 @@ package com.xinyue.atelier.controller;
 import com.xinyue.atelier.model.Pattern;
 import com.xinyue.atelier.respository.PatternRepo;
 import com.xinyue.atelier.service.PatternService;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,4 +46,40 @@ public class PatternController {
         public List<Pattern> getFilesFolderById(@PathVariable UUID folderId) {
                 return patternRepo.findAllByFolderId(folderId);
         }
+
+        @GetMapping("/download/{patternId}")
+        public ResponseEntity<Resource> downloadPattern(@PathVariable UUID patternId) {
+
+                Pattern pattern = patternRepo.findById(patternId)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "Pattern not found"
+                        ));
+
+                Path filePath = Path.of(pattern.getPdfPath());
+
+                System.out.println("Trying to download: " + filePath.toAbsolutePath());
+
+                if (!Files.exists(filePath)) {
+                        throw new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "File not found on disk: " + filePath
+                        );
+                }
+
+                try {
+                        Resource resource = new UrlResource(filePath.toUri());
+
+                        return ResponseEntity.ok()
+                                .contentType(MediaType.APPLICATION_PDF)
+                                .header(
+                                        HttpHeaders.CONTENT_DISPOSITION,
+                                        "attachment; filename=\"" + filePath.getFileName() + "\""
+                                )
+                                .body(resource);
+
+                } catch (MalformedURLException e) {
+                        throw new RuntimeException("Invalid file path", e);
+                }
+        }
+
 }

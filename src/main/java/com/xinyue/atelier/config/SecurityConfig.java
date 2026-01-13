@@ -15,6 +15,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/data/**").permitAll()
+                        .requestMatchers("/patterns/download/**").permitAll()
                         .anyRequest().permitAll() // TEMP while developing
                 )
                 .csrf(csrf -> csrf.disable());
