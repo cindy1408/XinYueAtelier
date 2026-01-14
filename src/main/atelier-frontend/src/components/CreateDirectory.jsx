@@ -2,8 +2,8 @@ import { useState } from "react";
 
 function CreateDirectory({ onCreated }) {
     const [title, setTitle] = useState("");
-    const [garmentType, setGarmentType] = useState("");
-    const [level, setLevel] = useState("");
+    const [garmentType, setGarmentType] = useState("COURSE");
+    const [level, setLevel] = useState("BEGINNER");
     const [origin, setOrigin] = useState("DRAFTED");
     const [image, setImage] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -37,7 +37,7 @@ function CreateDirectory({ onCreated }) {
             if (response.ok) {
                 onCreated();
                 setTitle("");
-                setGarmentType("");
+                setGarmentType("COURSE");
                 setLevel("BEGINNER");
                 setOrigin("DRAFTED");
                 setImage(null);
@@ -70,6 +70,7 @@ function CreateDirectory({ onCreated }) {
             <label>
                 Garment Type
                 <select value={garmentType} onChange={(e) => setGarmentType(e.target.value)}>
+                    <option value="COURSE">Course</option>
                     <option value="ACCESSORY">Accessory</option>
                     <option value="BLAZER">Blazer</option>
                     <option value="BLOUSE">Blouse</option>
@@ -78,6 +79,7 @@ function CreateDirectory({ onCreated }) {
                     <option value="KNIT">Knit</option>
                     <option value="OUTERWEAR">Outerwear</option>
                     <option value="SKIRT">Skirt</option>
+                    <option value="TROUSERS">Trousers</option>
                     <option value="UNDERWEAR">Underwear</option>
                 </select>
             </label>

@@ -6,6 +6,7 @@ function EachFolder() {
     const { folderId } = useParams();
     const [folder, setFolder] = useState(null);
     const [files, setFiles] = useState([]);
+    const [modalFile, setModalFile] = useState(null);
 
     const fetchFolder = async () => {
         try {
@@ -44,28 +45,38 @@ function EachFolder() {
             {files.length === 0 ? (
                 <p>No files in this folder</p>
             ) : (
-                    <ul style={{ listStyle: "none", padding: 0 }}>
-                        {files.map((file) => (
-                            <li
-                                key={file.id}
-                                style={{
-                                    marginBottom: "24px",
-                                    border: "1px solid #ddd",
-                                    padding: "16px",
-                                    borderRadius: "8px",
-                                    maxWidth: "600px"
-                                }}
-                            >
-                                <h4>{file.title}</h4>
-
-                                <iframe
-                                    src={`http://localhost:8080/patterns/preview/${file.id}`}
-                                    width="200px"
-                                    height="260px"
-                                />
-
+                <div
+                    style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "24px",
+                    }}
+                >
+                    {files.map((file) => (
+                        <div
+                            key={file.id}
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                border: "1px solid #ddd",
+                                padding: "12px",
+                                borderRadius: "8px",
+                                boxSizing: "border-box",
+                                width: "350px",
+                                gap: "12px",
+                            }}
+                        >
+                            <iframe
+                                src={`http://localhost:8080/patterns/preview/${file.id}`}
+                                width="200px"
+                                height="260px"
+                                style={{ border: "none" }}
+                            />
+                            <h4 style={{ textAlign: "center" }}>{file.title}</h4>
+                            <div style={{ display: "flex", gap: "8px" }}>
+                                <button onClick={() => setModalFile(file)}>View</button>
                                 <button
-                                    style={{ marginTop: "12px" }}
                                     onClick={() =>
                                         window.open(
                                             `http://localhost:8080/patterns/download/${file.id}`,
@@ -73,16 +84,45 @@ function EachFolder() {
                                         )
                                     }
                                 >
-                                    Download PDF
+                                    Download
                                 </button>
-                            </li>
-                        ))}
-                    </ul>
-
+                            </div>
+                        </div>
+                    ))}
+                </div>
             )}
 
-            <PatternUpload onUpload={() => { fetchFiles(); }} />
+            <PatternUpload onUpload={fetchFiles} />
+
+            {modalFile && (
+                <div
+                    style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        width: "100vw",
+                        height: "100vh",
+                        backgroundColor: "rgba(0,0,0,0.7)",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        zIndex: 1000,
+                    }}
+                    onClick={() => setModalFile(null)}
+                >
+                    <iframe
+                        src={`http://localhost:8080/patterns/preview/${modalFile.id}`}
+                        style={{
+                            width: "90%",
+                            height: "90%",
+                            border: "none",
+                            borderRadius: "8px",
+                        }}
+                    />
+                </div>
+            )}
         </div>
+
     );
 }
 

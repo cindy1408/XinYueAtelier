@@ -1,6 +1,7 @@
 package com.xinyue.atelier;
 
 public enum GarmentType {
+    COURSE,
     ACCESSORY,
     BLAZER,
     BLOUSE,

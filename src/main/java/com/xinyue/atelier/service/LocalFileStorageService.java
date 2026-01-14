@@ -79,7 +79,7 @@ public class LocalFileStorageService implements FileStorageService {
 
             Folder folder = new Folder();
             folder.setFolderName(title);
-            folder.setGarmentType(GarmentType.valueOf(garmentType));
+            folder.setGarmentType(GarmentType.valueOf(garmentType.trim().toUpperCase()));
             folder.setOrigin(PatternOrigin.valueOf(origin));
             folder.setLevel(Level.valueOf(level));
             folder.setImagePath(relativePath.toString());

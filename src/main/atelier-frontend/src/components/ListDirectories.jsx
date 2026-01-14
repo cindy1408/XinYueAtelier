@@ -18,6 +18,7 @@ function FolderList({ folders }) {
                         key={folder.id}
                         style={{
                             display: "flex",
+                            width: "fit-content",  
                             border: "1px solid #ccc",
                             borderRadius: "8px",
                             overflow: "hidden",
