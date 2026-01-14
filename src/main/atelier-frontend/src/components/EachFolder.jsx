@@ -41,6 +41,8 @@ function EachFolder() {
         <div>
             <h2>Folder: {folder ? folder.folderName : "Loading..."}</h2>
 
+            <PatternUpload onUpload={fetchFiles} />
+
             <h3>Files</h3>
             {files.length === 0 ? (
                 <p>No files in this folder</p>
@@ -91,8 +93,6 @@ function EachFolder() {
                     ))}
                 </div>
             )}
-
-            <PatternUpload onUpload={fetchFiles} />
 
             {modalFile && (
                 <div
