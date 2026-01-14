@@ -44,23 +44,41 @@ function EachFolder() {
             {files.length === 0 ? (
                 <p>No files in this folder</p>
             ) : (
-                <ul>
-                    {files.map((file) => (
-                        <li key={file.id}>
-                            {file.title}
-                            <button
-                                onClick={() =>
-                                    window.open(
-                                        `http://localhost:8080/patterns/download/${file.id}`,
-                                        "_blank"
-                                    )
-                                }
+                    <ul style={{ listStyle: "none", padding: 0 }}>
+                        {files.map((file) => (
+                            <li
+                                key={file.id}
+                                style={{
+                                    marginBottom: "24px",
+                                    border: "1px solid #ddd",
+                                    padding: "16px",
+                                    borderRadius: "8px",
+                                    maxWidth: "600px"
+                                }}
                             >
-                                Download
-                            </button>
-                        </li>
-                    ))}
-                </ul>
+                                <h4>{file.title}</h4>
+
+                                <iframe
+                                    src={`http://localhost:8080/patterns/preview/${file.id}`}
+                                    width="200px"
+                                    height="260px"
+                                />
+
+                                <button
+                                    style={{ marginTop: "12px" }}
+                                    onClick={() =>
+                                        window.open(
+                                            `http://localhost:8080/patterns/download/${file.id}`,
+                                            "_blank"
+                                        )
+                                    }
+                                >
+                                    Download PDF
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+
             )}
 
             <PatternUpload onUpload={() => { fetchFiles(); }} />

@@ -82,4 +82,37 @@ public class PatternController {
                 }
         }
 
+
+        @GetMapping("/preview/{patternId}")
+        public ResponseEntity<Resource> previewPattern(@PathVariable UUID patternId) {
+
+                Pattern pattern = patternRepo.findById(patternId)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "Pattern not found"
+                        ));
+
+                Path filePath = Path.of(pattern.getPdfPath());
+
+                if (!Files.exists(filePath)) {
+                        throw new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "File not found on disk"
+                        );
+                }
+
+                try {
+                        Resource resource = new UrlResource(filePath.toUri());
+
+                        return ResponseEntity.ok()
+                                .contentType(MediaType.APPLICATION_PDF)
+                                .header(
+                                        HttpHeaders.CONTENT_DISPOSITION,
+                                        "inline; filename=\"" + filePath.getFileName() + "\""
+                                )
+                                .body(resource);
+
+                } catch (MalformedURLException e) {
+                        throw new RuntimeException(e);
+                }
+        }
+
 }

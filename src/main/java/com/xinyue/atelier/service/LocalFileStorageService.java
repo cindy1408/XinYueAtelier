@@ -34,11 +34,14 @@ public class LocalFileStorageService implements FileStorageService {
 
             String extension = FilenameUtils.getExtension(file.getOriginalFilename());
 
-            String safeTitle = title.replaceAll("[^a-zA-Z0-9-_ ]", "_");
+            String safeTitle = title
+                    .trim()
+                    .replaceAll("\\s+", "-")        // spaces → hyphens
+                    .replaceAll("[^a-zA-Z0-9-_]", "");
+
             String filename = safeTitle + "." + extension;
 
             Path filePath = dirPath.resolve(filename);
-
             file.transferTo(filePath);
 
             return filePath.toString();
