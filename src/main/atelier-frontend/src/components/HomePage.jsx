@@ -18,11 +18,13 @@ export default function HomePage() {
 
     return (
         <div>
-            <FolderList folders={folders} />
+            <h2>Folders</h2>
 
             <button onClick={() => setShowForm(!showForm)}>
                 {showForm ? "Cancel" : "Create New Folder"}
             </button>
+
+            <FolderList folders={folders} />
 
             {showForm && (
                 <CreateDirectory

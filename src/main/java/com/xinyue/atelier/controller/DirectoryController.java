@@ -46,4 +46,17 @@ public class DirectoryController {
         Folder folder = fileStorageService.createDirectory(title,garmentType, origin, level, image);
         return ResponseEntity.ok(folder);
     }
+
+    @PutMapping("/{id}")
+    public Folder updateFolder(
+            @PathVariable UUID id,
+            @RequestParam String folderName,
+            @RequestParam String garmentType,
+            @RequestParam String origin,
+            @RequestParam String level,
+            @RequestParam(required = false) MultipartFile image
+    ) {
+        return fileStorageService.updateDirectory(id, folderName, garmentType, origin, level, image);
+    }
+
 }
