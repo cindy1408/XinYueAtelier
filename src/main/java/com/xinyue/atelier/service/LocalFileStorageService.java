@@ -3,14 +3,11 @@ package com.xinyue.atelier.service;
 import com.xinyue.atelier.GarmentType;
 import com.xinyue.atelier.Level;
 import com.xinyue.atelier.PatternOrigin;
-import com.xinyue.atelier.dto.FolderUpdateRequest;
 import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.respository.FolderRepo;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -63,28 +60,37 @@ public class LocalFileStorageService implements FileStorageService {
             String garmentType,
             String origin,
             String level,
-            MultipartFile image
+            MultipartFile image,
+            UUID parentId
     ) {
         try {
-            Path uploadPath = Path.of(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
+            Folder folder = new Folder();
+            Path uploadRoot = Path.of(UPLOAD_DIR);
+            Files.createDirectories(uploadRoot);
+
+            Path basePath = uploadRoot;
+
+            if (parentId != null) {
+                Folder parent = folderRepo.findById(parentId)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "Parent folder not found"
+                        ));
+                folder.setParentFolder(parent);
+
+                basePath = uploadRoot.resolve(parent.getFolderName());
             }
 
-            Path folderPath = uploadPath.resolve(title);
-            if (!Files.exists(folderPath)) {
-                Files.createDirectories(folderPath);
-            }
+            Path newFolderPath = basePath.resolve(title);
+            Files.createDirectories(newFolderPath);
 
             String cleanFileName = Objects.requireNonNull(image.getOriginalFilename())
                     .replaceAll("\\s+", "-");
 
-            Path imagePath = folderPath.resolve(cleanFileName);
-
+            Path imagePath = newFolderPath.resolve(cleanFileName);
             image.transferTo(imagePath);
-            Path relativePath = uploadPath.relativize(imagePath);
 
-            Folder folder = new Folder();
+            Path relativePath = uploadRoot.relativize(imagePath);
+
             folder.setFolderName(title);
             folder.setGarmentType(GarmentType.valueOf(garmentType.trim().toUpperCase()));
             folder.setOrigin(PatternOrigin.valueOf(origin));

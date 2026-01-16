@@ -31,4 +31,8 @@ public class Folder {
 
     @Enumerated(EnumType.STRING)
     private GarmentType garmentType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Folder parentFolder;
 }

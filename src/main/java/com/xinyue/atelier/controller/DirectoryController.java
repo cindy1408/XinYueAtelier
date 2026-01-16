@@ -41,9 +41,10 @@ public class DirectoryController {
             @RequestParam("garmentType") String garmentType,
             @RequestParam("origin") String origin,
             @RequestParam("level") String level,
-            @RequestParam("image") MultipartFile image
+            @RequestParam("image") MultipartFile image,
+            @RequestParam("parentId") UUID parentId
     ) {
-        Folder folder = fileStorageService.createDirectory(title,garmentType, origin, level, image);
+        Folder folder = fileStorageService.createDirectory(title,garmentType, origin, level, image, parentId);
         return ResponseEntity.ok(folder);
     }
 
