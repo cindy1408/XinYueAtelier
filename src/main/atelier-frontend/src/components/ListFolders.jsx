@@ -10,7 +10,7 @@ function FolderList() {
     // Fetch folders from backend
     const fetchFolders = async () => {
         try {
-            const res = await fetch("http://localhost:8080/directory");
+            const res = await fetch("http://localhost:8080/folder");
             const data = await res.json();
             setLocalFolders(Array.isArray(data) ? data : []);
         } catch (err) {
@@ -28,7 +28,7 @@ function FolderList() {
         setLocalFolders(prev =>
             prev.map(f => f.id === updatedFolder.id ? updatedFolder : f)
         );
-        setEditFolder(null); // close modal
+        setEditFolder(null); 
     };
 
     return (
@@ -45,7 +45,7 @@ function FolderList() {
                                 borderRadius: "8px",
                                 padding: "12px",
                                 backgroundColor: "#fafafa",
-                                gap: "12px" // space between image and text
+                                gap: "12px" 
                             }}
                         >
                             {folder.imagePath && (

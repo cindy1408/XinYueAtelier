@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import FolderList from "./ListDirectories";
-import CreateDirectory from "./CreateDirectory";
+import FolderList from "./ListFolders";
+import CreateFolder from "./CreateFolder";
 
 export default function HomePage() {
     const [folders, setFolders] = useState([]);
     const [showForm, setShowForm] = useState(false);
 
     const fetchFolders = async () => {
-        const res = await fetch("http://localhost:8080/directory");
+        const res = await fetch("http://localhost:8080/folder");
         const data = await res.json();
         setFolders(data);
     }
@@ -27,7 +27,7 @@ export default function HomePage() {
             <FolderList folders={folders} />
 
             {showForm && (
-                <CreateDirectory
+                <CreateFolder
                     onCreated={() => {
                         fetchFolders();
                         setShowForm(false);

@@ -11,7 +11,7 @@ function EachFolder() {
     const fetchFolder = async () => {
         try {
             const res = await fetch(
-                `http://localhost:8080/directory/${folderId}`
+                `http://localhost:8080/folder/${folderId}`
             );
             const data = await res.json();
             setFolder(data);

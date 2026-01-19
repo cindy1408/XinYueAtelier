@@ -2,7 +2,7 @@ package com.xinyue.atelier.controller;
 
 import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.respository.FolderRepo;
-import com.xinyue.atelier.service.FileStorageService;
+import com.xinyue.atelier.service.FolderService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,20 +13,20 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/directory")
+@RequestMapping("/folder")
 @CrossOrigin(origins = "http://localhost:5173", methods = { RequestMethod.GET, RequestMethod.POST,
         RequestMethod.OPTIONS })
-public class DirectoryController {
-    private final FileStorageService fileStorageService;
+public class FolderController {
     private final FolderRepo folderRepo;
+    private final FolderService folderService;
 
-    public DirectoryController(FileStorageService fileStorageService, FolderRepo folderRepo) {
-        this.fileStorageService = fileStorageService;
+    public FolderController(FolderRepo folderRepo, FolderService folderService) {
         this.folderRepo = folderRepo;
+        this.folderService = folderService;
     }
 
     @GetMapping
-    public List<Folder> listDirectories() {
+    public List<Folder> listFolders() {
         return folderRepo.findAll();
     }
 
@@ -36,7 +36,7 @@ public class DirectoryController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Folder> createDirectory(
+    public ResponseEntity<Folder> createFolder(
             @RequestParam("title") String title,
             @RequestParam("garmentType") String garmentType,
             @RequestParam("origin") String origin,
@@ -44,7 +44,7 @@ public class DirectoryController {
             @RequestParam("image") MultipartFile image,
             @RequestParam("parentId") UUID parentId
     ) {
-        Folder folder = fileStorageService.createDirectory(title,garmentType, origin, level, image, parentId);
+        Folder folder = folderService.createFolder(title,garmentType, origin, level, image, parentId);
         return ResponseEntity.ok(folder);
     }
 
@@ -57,7 +57,7 @@ public class DirectoryController {
             @RequestParam String level,
             @RequestParam(required = false) MultipartFile image
     ) {
-        return fileStorageService.updateDirectory(id, folderName, garmentType, origin, level, image);
+        return folderService.updateFolder(id, folderName, garmentType, origin, level, image);
     }
 
 }

@@ -23,7 +23,7 @@ function EditFolderModal({ folder, onClose, onSaved }) {
         if (newImage) data.append("image", newImage);
 
         try {
-            const res = await fetch(`http://localhost:8080/directory/${folder.id}`, {
+            const res = await fetch(`http://localhost:8080/folder/${folder.id}`, {
                 method: "PUT",
                 body: data,
             });

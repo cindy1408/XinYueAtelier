@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function CreateDirectory({ onCreated }) {
+function CreateFolder({ onCreated }) {
     const [title, setTitle] = useState("");
     const [garmentType, setGarmentType] = useState("COURSE");
     const [level, setLevel] = useState("BEGINNER");
@@ -27,7 +27,7 @@ function CreateDirectory({ onCreated }) {
 
         try {
             const response = await fetch(
-                `http://localhost:8080/directory`,
+                `http://localhost:8080/folder`,
                 {
                     method: "POST",
                     body: formData,
@@ -118,4 +118,4 @@ function CreateDirectory({ onCreated }) {
     );
 }
 
-export default CreateDirectory;
+export default CreateFolder;

@@ -13,16 +13,16 @@ import java.util.UUID;
 public class PatternService {
 
     private final PatternRepo patternRepository;
-    private final FileStorageService fileStorage;
     private final FolderRepo folderRepo;
+    private final FolderService folderService;
 
     public PatternService(
             PatternRepo patternRepository,
             FolderRepo folderRepo,
-            FileStorageService fileStorage) {
+            FolderService folderService) {
         this.patternRepository = patternRepository;
         this.folderRepo = folderRepo;
-        this.fileStorage = fileStorage;
+        this.folderService = folderService;
     }
 
     public Pattern create(
@@ -33,7 +33,7 @@ public class PatternService {
         Folder folder = folderRepo.findById(folderId)
                 .orElseThrow(() -> new RuntimeException("Folder not found"));
 
-        String pdfPath = fileStorage.save(pdf, folder.getFolderName(), title);
+        String pdfPath = folderService.save(pdf, folder.getFolderName(), title);
         Pattern pattern = new Pattern();
         pattern.setFolderId(folderId);
         pattern.setTitle(title);
