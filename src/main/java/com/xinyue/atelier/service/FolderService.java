@@ -78,19 +78,15 @@ public class FolderService {
             Path uploadRoot = Path.of(UPLOAD_DIR);
             Files.createDirectories(uploadRoot);
 
-            Path basePath = uploadRoot;
-
             if (parentId != null) {
                 Folder parent = folderRepo.findById(parentId)
                         .orElseThrow(() -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND, "Parent folder not found"
                         ));
                 folder.setParentFolder(parent);
-
-                basePath = uploadRoot.resolve(parent.getFolderName());
             }
 
-            Path newFolderPath = basePath.resolve(title);
+            Path newFolderPath = uploadRoot.resolve(title);
             Files.createDirectories(newFolderPath);
 
             String cleanFileName = Objects.requireNonNull(image.getOriginalFilename())

@@ -1,20 +1,42 @@
 import { useEffect, useState } from "react";
-import FolderList from "./ListFolders";
+import FolderList from "./FolderList";
 import CreateFolder from "./CreateFolder";
+import EditFolderModal from "./EditFolderModal";
 
 export default function HomePage() {
     const [folders, setFolders] = useState([]);
     const [showForm, setShowForm] = useState(false);
+    const [editFolder, setEditFolder] = useState(null);
 
     const fetchFolders = async () => {
-        const res = await fetch("http://localhost:8080/folder");
-        const data = await res.json();
-        setFolders(data);
+        try {
+            const res = await fetch("http://localhost:8080/folder");
+            const data = await res.json();
+            setFolders(data);
+        } catch (err) {
+            console.error("Failed to fetch folders", err);
+        }
     }
 
     useEffect(() => {
         fetchFolders();
     }, []);
+
+    // Called by CreateFolder after new folder is created
+    const handleFolderCreated = (updatedFolder) => {
+        fetchFolders();
+        setShowForm(false);
+    };
+
+    // Called by EditFolderModal after folder is updated
+    const handleFolderUpdated = (updatedFolder) => {
+        setFolders(prev =>
+            prev.map(f =>
+                f.id === updatedFolder.id ? updatedFolder : f
+            )
+        );
+        setEditFolder(null);
+    }
 
     return (
         <div>
@@ -24,14 +46,25 @@ export default function HomePage() {
                 {showForm ? "Cancel" : "Create New Folder"}
             </button>
 
-            <FolderList folders={folders} />
-
             {showForm && (
                 <CreateFolder
                     onCreated={() => {
-                        fetchFolders();
-                        setShowForm(false);
+                        handleFolderCreated
                     }}
+                />
+            )}
+
+            <FolderList
+                folders={folders}
+                onEdit={(folder) => setEditFolder(folder)}
+            />
+
+
+            {editFolder && (
+                <EditFolderModal
+                    folder={editFolder}
+                    onSaved={handleFolderUpdated}
+                    onClose={() => setEditFolder(null)}
                 />
             )}
         </div>

@@ -1,12 +1,18 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import PatternUpload from "./PatternUpload";
+import CreateFolder from "./CreateFolder";
+import FolderList from "./FolderList";
+import EditFolderModal from "./EditFolderModal";
 
 function EachFolder() {
     const { folderId } = useParams();
     const [folder, setFolder] = useState(null);
     const [files, setFiles] = useState([]);
+    const [children, setChildren] = useState([]);
     const [modalFile, setModalFile] = useState(null);
+    const [editFolder, setEditFolder] = useState(null);
+
 
     const fetchFolder = async () => {
         try {
@@ -17,6 +23,18 @@ function EachFolder() {
             setFolder(data);
         } catch (err) {
             console.error("Failed to fetch folder", err);
+        }
+    };
+
+    const fetchChildren = async () => {
+        try {
+            const res = await fetch(`http://localhost:8080/folder/${folderId}/children`);
+            const data = await res.json();
+
+            // Ensure it's always an array
+            setChildren(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error("Failed to fetch children:", err);
         }
     };
 
@@ -34,6 +52,7 @@ function EachFolder() {
 
     useEffect(() => {
         fetchFolder();
+        fetchChildren();
         fetchFiles();
     }, [folderId]);
 
@@ -42,6 +61,20 @@ function EachFolder() {
             <h2>Folder: {folder ? folder.folderName : "Loading..."}</h2>
 
             <PatternUpload onUpload={fetchFiles} />
+
+            {/* Create a subfolder under this folder */}
+            <CreateFolder
+                parentId={folderId}
+                onCreated={() => fetchChildren()} // refresh subfolders after creation
+            />
+
+            {/* Subfolders */}
+            <h3>Subfolders</h3>
+            {children.length === 0 ? (
+                <p>No subfolders</p>
+            ) : (
+                <FolderList folders={children} onEdit={(folder) => setEditFolder(folder)} />
+            )}
 
             <h3>Files</h3>
             {files.length === 0 ? (
@@ -120,6 +153,17 @@ function EachFolder() {
                         }}
                     />
                 </div>
+            )}
+
+            {editFolder && (
+                <EditFolderModal
+                    folder={editFolder}
+                    onClose={() => setEditFolder(null)}
+                    onSaved={() => {
+                        fetchChildren();
+                        setEditFolder(null);
+                    }}
+                />
             )}
         </div>
 

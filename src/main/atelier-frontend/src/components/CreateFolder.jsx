@@ -1,6 +1,9 @@
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 
 function CreateFolder({ onCreated }) {
+    const { folderId } = useParams();
+    const parentId = folderId ?? null;
     const [title, setTitle] = useState("");
     const [garmentType, setGarmentType] = useState("COURSE");
     const [level, setLevel] = useState("BEGINNER");
@@ -24,15 +27,15 @@ function CreateFolder({ onCreated }) {
         formData.append("origin", origin);
         formData.append("image", image);
 
+        const url = parentId
+            ? `http://localhost:8080/folder/${parentId}`
+            : `http://localhost:8080/folder`;
 
         try {
-            const response = await fetch(
-                `http://localhost:8080/folder`,
-                {
-                    method: "POST",
-                    body: formData,
-                }
-            );
+            const response = await fetch(url, {
+                method: "POST",
+                body: formData,
+            });
 
             if (response.ok) {
                 onCreated();
@@ -51,7 +54,7 @@ function CreateFolder({ onCreated }) {
         } finally {
             setLoading(false);
         }
-    };
+            };
 
     return (
         <form onSubmit={handleSubmit}>

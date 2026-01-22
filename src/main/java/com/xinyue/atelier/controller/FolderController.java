@@ -27,7 +27,12 @@ public class FolderController {
 
     @GetMapping
     public List<Folder> listFolders() {
-        return folderRepo.findAll();
+        return folderRepo.findByParentFolderIsNull();
+    }
+
+    @GetMapping("/{parentId}/children")
+    public List<Folder> getFolderChildren(@PathVariable UUID parentId) {
+        return folderRepo.findByParentFolderId(parentId);
     }
 
     @GetMapping("/{folderId}")
@@ -36,16 +41,37 @@ public class FolderController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Folder> createFolder(
-            @RequestParam("title") String title,
-            @RequestParam("garmentType") String garmentType,
-            @RequestParam("origin") String origin,
-            @RequestParam("level") String level,
-            @RequestParam("image") MultipartFile image,
-            @RequestParam("parentId") UUID parentId
+    public ResponseEntity<Folder> createRootFolder(
+            @RequestParam String title,
+            @RequestParam String garmentType,
+            @RequestParam String origin,
+            @RequestParam String level,
+            @RequestParam MultipartFile image
     ) {
-        Folder folder = folderService.createFolder(title,garmentType, origin, level, image, parentId);
-        return ResponseEntity.ok(folder);
+        return ResponseEntity.ok(
+                folderService.createFolder(
+                        title, garmentType, origin, level, image, null
+                )
+        );
+    }
+
+    @PostMapping(
+            value = "/{parentId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<Folder> createChildFolder(
+            @PathVariable UUID parentId,
+            @RequestParam String title,
+            @RequestParam String garmentType,
+            @RequestParam String origin,
+            @RequestParam String level,
+            @RequestParam MultipartFile image
+    ) {
+        return ResponseEntity.ok(
+                folderService.createFolder(
+                        title, garmentType, origin, level, image, parentId
+                )
+        );
     }
 
     @PutMapping("/{id}")

@@ -1,41 +1,15 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import EditFolderModal from "./EditFolderModal";
+import { useState } from "react";
 
-function FolderList() {
+function FolderList({ folders, onEdit }) {
     const navigate = useNavigate();
-    const [localFolders, setLocalFolders] = useState([]);
     const [editFolder, setEditFolder] = useState(null);
-
-    // Fetch folders from backend
-    const fetchFolders = async () => {
-        try {
-            const res = await fetch("http://localhost:8080/folder");
-            const data = await res.json();
-            setLocalFolders(Array.isArray(data) ? data : []);
-        } catch (err) {
-            console.error("Failed to fetch folders:", err);
-        }
-    };
-
-    useEffect(() => {
-        fetchFolders();
-    }, []);
-
-    // Called by modal after save
-    const handleSaved = (updatedFolder) => {
-        if (!updatedFolder?.id) return;
-        setLocalFolders(prev =>
-            prev.map(f => f.id === updatedFolder.id ? updatedFolder : f)
-        );
-        setEditFolder(null); 
-    };
 
     return (
         <div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "24px" }}>
-                {localFolders?.length > 0 ? (
-                    localFolders.map(folder => folder && (
+                {folders?.length > 0 ? (
+                    folders.map(folder => folder && (
                         <div
                             key={folder.id}
                             style={{
@@ -45,7 +19,7 @@ function FolderList() {
                                 borderRadius: "8px",
                                 padding: "12px",
                                 backgroundColor: "#fafafa",
-                                gap: "12px" 
+                                gap: "12px"
                             }}
                         >
                             {folder.imagePath && (
@@ -74,22 +48,26 @@ function FolderList() {
                                     Go to folder
                                 </button>
 
-                                <button onClick={() => setEditFolder(folder)}>✏️ Edit</button>
+                                <button onClick={() => onEdit(folder)}>✏️ Edit</button>
                             </div>
                         </div>
                     ))
                 ) : (
                     <p>No folders found</p>
                 )}
-            </div>
 
-            {editFolder && (
-                <EditFolderModal
-                    folder={editFolder}
-                    onClose={() => setEditFolder(null)}
-                    onSaved={handleSaved} 
-                />
-            )}
+
+                {editFolder && (
+                    <EditFolderModal
+                        folder={editFolder}
+                        onClose={() => setEditFolder(null)}
+                        onSaved={() => {
+                            onEdit();       
+                            setEditFolder(null);
+                        }}
+                    />
+                )}
+            </div>
         </div>
     );
 }
