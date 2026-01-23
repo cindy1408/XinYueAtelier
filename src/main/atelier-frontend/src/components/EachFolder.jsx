@@ -4,6 +4,7 @@ import PatternUpload from "./PatternUpload";
 import CreateFolder from "./CreateFolder";
 import FolderList from "./FolderList";
 import EditFolderModal from "./EditFolderModal";
+import DeleteFileModal from "./DeleteFileModal";
 
 function EachFolder() {
     const { folderId } = useParams();
@@ -12,6 +13,7 @@ function EachFolder() {
     const [children, setChildren] = useState([]);
     const [modalFile, setModalFile] = useState(null);
     const [editFolder, setEditFolder] = useState(null);
+    const [fileToDelete, setFileToDelete] = useState(null);
 
 
     const fetchFolder = async () => {
@@ -31,7 +33,6 @@ function EachFolder() {
             const res = await fetch(`http://localhost:8080/folder/${folderId}/children`);
             const data = await res.json();
 
-            // Ensure it's always an array
             setChildren(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error("Failed to fetch children:", err);
@@ -47,6 +48,24 @@ function EachFolder() {
             setFiles(data);
         } catch (err) {
             console.error("Failed to fetch files", err);
+        }
+    };
+
+    const handleDeleteFile = async (fileId) => {
+        try {
+            const res = await fetch(
+                `http://localhost:8080/patterns/${fileId}`,
+                {
+                    method: "DELETE",
+                }
+            );
+            if (res.ok) {
+                fetchFiles();
+            } else {
+                console.error("Failed to delete file");
+            }
+        } catch (err) {
+            console.error("Error deleting file:", err);
         }
     };
 
@@ -121,6 +140,7 @@ function EachFolder() {
                                 >
                                     Download
                                 </button>
+                                <button onClick={() => setFileToDelete(file)}>🗑️</button>
                             </div>
                         </div>
                     ))}
@@ -162,6 +182,17 @@ function EachFolder() {
                     onSaved={() => {
                         fetchChildren();
                         setEditFolder(null);
+                    }}
+                />
+            )}
+
+            {fileToDelete && (
+                <DeleteFileModal
+                    file={fileToDelete}
+                    onCancel={() => setFileToDelete(null)}
+                    onConfirm={async () => {
+                        await handleDeleteFile(fileToDelete.id);
+                        setFileToDelete(null);
                     }}
                 />
             )}

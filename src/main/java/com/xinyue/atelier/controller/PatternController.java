@@ -47,6 +47,11 @@ public class PatternController {
                 return patternRepo.findAllByFolderId(folderId);
         }
 
+        @DeleteMapping("/{patternId}")
+        public void deletePatternById(@PathVariable UUID patternId) {
+            patternRepo.deleteById(patternId);
+        }
+
         @GetMapping("/download/{patternId}")
         public ResponseEntity<Resource> downloadPattern(@PathVariable UUID patternId) {
 
