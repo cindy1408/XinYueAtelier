@@ -1,5 +1,6 @@
 package com.xinyue.atelier.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,5 +19,8 @@ public class Pattern {
 
     private String pdfPath;
 
-    private UUID folderId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "folder_id")
+    @JsonIgnoreProperties("patterns")
+    private Folder folder;
 }

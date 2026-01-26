@@ -5,7 +5,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import static com.xinyue.atelier.service.FolderService.UPLOAD_DIR;
+import static com.xinyue.atelier.service.FolderService.UPLOAD_ROOT;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -14,7 +14,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry
                 .addResourceHandler("/data/**")
-                .addResourceLocations("file:" + UPLOAD_DIR + "/");
+                .addResourceLocations("file:" + UPLOAD_ROOT + "/");
     }
 
     @Override

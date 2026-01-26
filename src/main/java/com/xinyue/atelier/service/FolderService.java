@@ -8,20 +8,18 @@ import com.xinyue.atelier.respository.FolderRepo;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
 public class FolderService {
+    public static final Path UPLOAD_ROOT = Path.of("data");
+
     private final FolderRepo folderRepo;
 
     public FolderService(
@@ -29,42 +27,6 @@ public class FolderService {
         this.folderRepo = folderRepo;
     }
 
-    public static final String UPLOAD_DIR = "data";
-
-    @GetMapping("/{folderId}")
-    public Folder getFolder(@PathVariable UUID folderId) {
-        return folderRepo.findById(folderId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Folder not found"
-                ));
-    }
-
-    // save file to folder in directory (locally)
-    public String save(MultipartFile file, String subDirectory, String title) {
-        try {
-            Path dirPath = Paths.get(UPLOAD_DIR).resolve(subDirectory);
-            Files.createDirectories(dirPath);
-
-            String extension = FilenameUtils.getExtension(file.getOriginalFilename());
-
-            String safeTitle = title
-                    .trim()
-                    .replaceAll("\\s+", "-")        // spaces → hyphens
-                    .replaceAll("[^a-zA-Z0-9-_]", "");
-
-            String filename = safeTitle + "." + extension;
-
-            Path filePath = dirPath.resolve(filename);
-            file.transferTo(filePath);
-
-            return filePath.toString();
-
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to store file", e);
-        }
-    }
-
-    // createFolder creates folder locally and if successful it's also saved in db
     public Folder createFolder(
             String title,
             String garmentType,
@@ -74,9 +36,8 @@ public class FolderService {
             UUID parentId
     ) {
         try {
+            Files.createDirectories(UPLOAD_ROOT);
             Folder folder = new Folder();
-            Path uploadRoot = Path.of(UPLOAD_DIR);
-            Files.createDirectories(uploadRoot);
 
             if (parentId != null) {
                 Folder parent = folderRepo.findById(parentId)
@@ -86,26 +47,29 @@ public class FolderService {
                 folder.setParentFolder(parent);
             }
 
-            Path newFolderPath = uploadRoot.resolve(title);
-            Files.createDirectories(newFolderPath);
+            String safeFolderName = safeName(title);
+            Path folderPath = UPLOAD_ROOT.resolve(safeFolderName);
+            Files.createDirectories(folderPath);
 
-            String cleanFileName = Objects.requireNonNull(image.getOriginalFilename())
-                    .replaceAll("\\s+", "-");
 
-            Path imagePath = newFolderPath.resolve(cleanFileName);
-            image.transferTo(imagePath);
 
-            Path relativePath = uploadRoot.relativize(imagePath);
+            if (image != null && !image.isEmpty()) {
+                Path imagePath = saveFile(image, folderPath, title);
+                folder.setImagePath(UPLOAD_ROOT.relativize(imagePath).toString());
+            }
 
             folder.setFolderName(title);
-            folder.setGarmentType(GarmentType.valueOf(garmentType.trim().toUpperCase()));
-            folder.setOrigin(PatternOrigin.valueOf(origin));
-            folder.setLevel(Level.valueOf(level));
-            folder.setImagePath(relativePath.toString());
+            folder.setGarmentType(parseEnum(GarmentType.class, garmentType));
+            folder.setOrigin(parseEnum(PatternOrigin.class, origin));
+            folder.setLevel(parseEnum(Level.class, level));
 
             return folderRepo.save(folder);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to create folder or save image: " + title, e);
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to create folder",
+                    e
+            );
         }
     }
 
@@ -122,36 +86,64 @@ public class FolderService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
 
         try {
-            Path uploadPath = Path.of(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
+            Files.createDirectories(UPLOAD_ROOT);
+
+            String safeFolderName = safeName(folderName);
+            Path folderPath = UPLOAD_ROOT.resolve(safeFolderName);
+            Files.createDirectories(folderPath);
 
             if (image != null && !image.isEmpty()) {
-                Path folderPath = uploadPath.resolve(folderName);
-                if (!Files.exists(folderPath)) {
-                    Files.createDirectories(folderPath);
-                }
-
-                String cleanFileName = Objects.requireNonNull(image.getOriginalFilename())
-                        .replaceAll("\\s+", "-");
-
-                Path imagePath = folderPath.resolve(cleanFileName);
-                image.transferTo(imagePath);
-
-                Path relativePath = uploadPath.relativize(imagePath);
-                folder.setImagePath(relativePath.toString());
+                Path imagePath = saveFile(image, folderPath, folderName);
+                folder.setImagePath(UPLOAD_ROOT.relativize(imagePath).toString());
             }
 
             folder.setFolderName(folderName);
-            folder.setGarmentType(GarmentType.valueOf(garmentType.trim().toUpperCase()));
-            folder.setOrigin(PatternOrigin.valueOf(origin.trim().toUpperCase()));
-            folder.setLevel(Level.valueOf(level.trim().toUpperCase()));
+            folder.setGarmentType(parseEnum(GarmentType.class, garmentType));
+            folder.setOrigin(parseEnum(PatternOrigin.class, origin));
+            folder.setLevel(parseEnum(Level.class, level));
 
             return folderRepo.save(folder);
 
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update folder", e);
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to update folder",
+                    e
+            );
         }
     }
+
+    private String safeName(String input) {
+        return input
+                .trim()
+                .replaceAll("\\s+", "-")
+                .replaceAll("[^a-zA-Z0-9-_]", "");
+    }
+
+    private Path saveFile(MultipartFile file, Path dir, String ignoredTitle) throws IOException {
+        Files.createDirectories(dir);
+
+        String originalName = FilenameUtils.getBaseName(file.getOriginalFilename());
+        String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+
+        String safeBase = safeName(originalName);
+        String filename = safeBase + "." + extension;
+
+        Path path = dir.resolve(filename);
+        file.transferTo(path);
+
+        return path;
+    }
+
+    private <E extends Enum<E>> E parseEnum(Class<E> enumType, String value) {
+        try {
+            return Enum.valueOf(enumType, value.trim().toUpperCase());
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Invalid value for " + enumType.getSimpleName()
+            );
+        }
+    }
+
 }

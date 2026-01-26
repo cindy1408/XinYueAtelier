@@ -35,4 +35,11 @@ public class Folder {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Folder parentFolder;
+
+    public String getRelativePath() {
+        if (parentFolder == null) {
+            return folderName;
+        }
+        return parentFolder.getRelativePath() + "/" + folderName;
+    }
 }

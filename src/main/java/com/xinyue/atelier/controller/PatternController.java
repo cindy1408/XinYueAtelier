@@ -19,6 +19,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 
+import static com.xinyue.atelier.service.FolderService.UPLOAD_ROOT;
+
 @RestController
 @RequestMapping("/patterns")
 @CrossOrigin(origins = "http://localhost:5173", methods = { RequestMethod.GET, RequestMethod.POST,
@@ -60,7 +62,7 @@ public class PatternController {
                                 HttpStatus.NOT_FOUND, "Pattern not found"
                         ));
 
-                Path filePath = Path.of(pattern.getPdfPath());
+                Path filePath = Path.of(UPLOAD_ROOT.toUri()).resolve(pattern.getPdfPath());
 
                 System.out.println("Trying to download: " + filePath.toAbsolutePath());
 
@@ -96,7 +98,7 @@ public class PatternController {
                                 HttpStatus.NOT_FOUND, "Pattern not found"
                         ));
 
-                Path filePath = Path.of(pattern.getPdfPath());
+                Path filePath = Path.of(UPLOAD_ROOT.toUri()).resolve(pattern.getPdfPath());
 
                 if (!Files.exists(filePath)) {
                         throw new ResponseStatusException(
