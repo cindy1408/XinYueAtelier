@@ -19,7 +19,6 @@ import static com.xinyue.atelier.service.FolderService.UPLOAD_ROOT;
 
 @Service
 public class PatternService {
-
     private final PatternRepo patternRepo;
     private final FolderRepo folderRepo;
 
@@ -58,7 +57,7 @@ public class PatternService {
         }
     }
 
-    private Path saveFile(MultipartFile file, Path dir, String title) throws IOException {
+     Path saveFile(MultipartFile file, Path dir, String title) throws IOException {
         Files.createDirectories(dir);
 
         String extension = FilenameUtils.getExtension(file.getOriginalFilename());
