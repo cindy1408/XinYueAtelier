@@ -3,6 +3,7 @@ package com.xinyue.atelier.service;
 import com.xinyue.atelier.GarmentType;
 import com.xinyue.atelier.Level;
 import com.xinyue.atelier.PatternOrigin;
+import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.respository.FolderRepo;
 import org.apache.commons.io.FilenameUtils;
@@ -12,8 +13,13 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -21,11 +27,33 @@ public class FolderService {
     public static final Path UPLOAD_ROOT = Path.of("data");
 
     private final FolderRepo folderRepo;
+    private final FolderMapper folderMapper;
 
     public FolderService(
-            FolderRepo folderRepo) {
+            FolderRepo folderRepo, FolderMapper folderMapper) {
         this.folderRepo = folderRepo;
+        this.folderMapper = folderMapper;
     }
+
+    public List<FolderDto> listRootFolders() {
+        return folderRepo.findByParentFolderIsNull()
+                .stream()
+                .map(folderMapper::toDto)
+                .toList();
+    }
+
+    public List<FolderDto> getFolderChildrenById(UUID parentId) {
+        return folderRepo.findByParentFolderId(parentId)
+                .stream()
+                .map(folderMapper::toDto)
+                .toList();
+    }
+
+    public Optional<FolderDto> getFolderById(UUID id) {
+        return folderRepo.findById(id)
+                .map(folderMapper::toDto);
+    }
+
 
     public Folder createFolder(
             String title,
@@ -111,6 +139,36 @@ public class FolderService {
                     e
             );
         }
+    }
+
+
+    public void deleteFolder(UUID id) throws IOException {
+        Folder folder = folderRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Folder not found"));
+
+        Path folderPath = UPLOAD_ROOT.resolve(folder.getRelativePath());
+
+        // Delete from file system
+        if (Files.exists(folderPath)) {
+            Files.walkFileTree(folderPath, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    System.out.println("Deleted file: " + file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Files.delete(dir);
+                    System.out.println("Deleted folder: " + dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
+
+        // Delete folder record (and optionally children) from DB
+        folderRepo.delete(folder);
     }
 
     private String safeName(String input) {

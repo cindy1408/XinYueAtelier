@@ -98,7 +98,12 @@ public class PatternController {
                                 HttpStatus.NOT_FOUND, "Pattern not found"
                         ));
 
-                Path filePath = Path.of(UPLOAD_ROOT.toUri()).resolve(pattern.getPdfPath());
+//                Path filePath = Path.of(UPLOAD_ROOT.toUri()).resolve(pattern.getPdfPath());
+                Path filePath = Path.of(pattern.getPdfPath());
+
+                if (!filePath.isAbsolute()) {
+                        filePath = UPLOAD_ROOT.resolve(filePath);
+                }
 
                 if (!Files.exists(filePath)) {
                         throw new ResponseStatusException(

@@ -2,7 +2,6 @@ package com.xinyue.atelier.service;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 

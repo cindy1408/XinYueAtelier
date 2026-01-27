@@ -1,5 +1,6 @@
 package com.xinyue.atelier.controller;
 
+import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.respository.FolderRepo;
 import com.xinyue.atelier.service.FolderService;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,18 +28,18 @@ public class FolderController {
     }
 
     @GetMapping
-    public List<Folder> listFolders() {
-        return folderRepo.findByParentFolderIsNull();
+    public List<FolderDto> listFolders() {
+        return folderService.listRootFolders();
     }
 
     @GetMapping("/{parentId}/children")
-    public List<Folder> getFolderChildren(@PathVariable UUID parentId) {
-        return folderRepo.findByParentFolderId(parentId);
+    public List<FolderDto> getFolderChildren(@PathVariable UUID parentId) {
+        return folderService.getFolderChildrenById(parentId);
     }
 
     @GetMapping("/{folderId}")
-    public Optional<Folder> getFolderById(@PathVariable UUID folderId) {
-        return folderRepo.findById(folderId);
+    public Optional<FolderDto> getFolderById(@PathVariable UUID folderId) {
+        return folderService.getFolderById(folderId);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -86,4 +88,8 @@ public class FolderController {
         return folderService.updateFolder(id, folderName, garmentType, origin, level, image);
     }
 
+    @DeleteMapping("/{id}")
+    public void deleteFolder(@PathVariable UUID id) throws IOException {
+        folderService.deleteFolder(id);
+    }
 }
