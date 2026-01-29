@@ -30,8 +30,22 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: maven
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+#    - name: Build with Maven
+#      run: mvn -B package --file pom.xml
 
     - name: Build
       run: mvn clean test -Dspring.profiles.active=ci
+
+# Frontend
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Install frontend dependencies
+      run: npm ci
+      working-directory: atelier-frontend
+
+    - name: Run frontend tests
+      run: npm test
+      working-directory: atelier-frontend
