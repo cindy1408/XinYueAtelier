@@ -49,3 +49,7 @@ jobs:
     - name: Run frontend tests
       run: npm test
       working-directory: atelier-frontend
+
+    - name: Run frontend lint
+      run: npm run lint
+      working-directory: atelier-frontend

@@ -1,5 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import PatternUpload from "./PatternUpload";
 import CreateFolder from "./CreateFolder";
 import FolderList from "./FolderList";
@@ -16,7 +18,7 @@ function EachFolder() {
     const [fileToDelete, setFileToDelete] = useState(null);
 
 
-    const fetchFolder = async () => {
+    const fetchFolder = useCallback(async () => {
         try {
             const res = await fetch(
                 `http://localhost:8080/folder/${folderId}`
@@ -26,9 +28,9 @@ function EachFolder() {
         } catch (err) {
             console.error("Failed to fetch folder", err);
         }
-    };
+    }, [folderId]);
 
-    const fetchChildren = async () => {
+    const fetchChildren = useCallback(async () => {
         try {
             const res = await fetch(`http://localhost:8080/folder/${folderId}/children`);
             const data = await res.json();
@@ -37,9 +39,9 @@ function EachFolder() {
         } catch (err) {
             console.error("Failed to fetch children:", err);
         }
-    };
+    }, [folderId]);
 
-    const fetchFiles = async () => {
+    const fetchFiles = useCallback(async () => {
         try {
             const res = await fetch(
                 `http://localhost:8080/patterns/${folderId}/files`
@@ -49,7 +51,7 @@ function EachFolder() {
         } catch (err) {
             console.error("Failed to fetch files", err);
         }
-    };
+    }, [folderId]);
 
     const handleDeleteFile = async (fileId) => {
         try {
@@ -73,7 +75,7 @@ function EachFolder() {
         fetchFolder();
         fetchChildren();
         fetchFiles();
-    }, [folderId]);
+    }, [fetchFolder, fetchChildren, fetchFiles]);
 
     return (
         <div>

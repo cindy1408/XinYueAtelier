@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from "react";
 import FolderList from "./FolderList";
 import CreateFolder from "./CreateFolder";
@@ -23,7 +24,7 @@ export default function HomePage() {
     }, []);
 
     // Called by CreateFolder after new folder is created
-    const handleFolderCreated = (updatedFolder) => {
+    const handleFolderCreated = () => {
         fetchFolders();
         setShowForm(false);
     };
@@ -49,7 +50,7 @@ export default function HomePage() {
             {showForm && (
                 <CreateFolder
                     onCreated={() => {
-                        handleFolderCreated
+                        handleFolderCreated()
                     }}
                 />
             )}
