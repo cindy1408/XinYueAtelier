@@ -18,8 +18,8 @@ permissions:
   contents: read
 
 jobs:
-  build:
-
+  backend build:
+    name: Backend Build
     runs-on: ubuntu-latest
 
     steps:
@@ -33,23 +33,42 @@ jobs:
 #    - name: Build with Maven
 #      run: mvn -B package --file pom.xml
 
-    - name: Build
+    - name: Backend tests
       run: mvn clean test -Dspring.profiles.active=ci
 
-# Frontend
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
+  frontend-test:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
 
-    - name: Install frontend dependencies
-      run: npm ci
-      working-directory: atelier-frontend
+    steps:
+      - uses: actions/checkout@v4
 
-    - name: Run frontend tests
-      run: npm test
-      working-directory: atelier-frontend
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-    - name: Run frontend lint
-      run: npm run lint
-      working-directory: atelier-frontend
+      - name: Install dependencies
+        working-directory: atelier-frontend
+        run: npm ci
+
+      - name: Test
+        working-directory: atelier-frontend
+        run: npm test
+
+
+  frontend-lint:
+    name: Frontend Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Lint
+        working-directory: atelier-frontend
+        run: npm run lint
