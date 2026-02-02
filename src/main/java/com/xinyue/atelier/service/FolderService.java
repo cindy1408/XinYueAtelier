@@ -55,7 +55,7 @@ public class FolderService {
     }
 
 
-    public Folder createFolder(
+    public FolderDto createFolder(
             String title,
             String garmentType,
             String origin,
@@ -80,7 +80,6 @@ public class FolderService {
             Files.createDirectories(folderPath);
 
 
-
             if (image != null && !image.isEmpty()) {
                 Path imagePath = saveFile(image, folderPath, title);
                 folder.setImagePath(UPLOAD_ROOT.relativize(imagePath).toString());
@@ -91,7 +90,8 @@ public class FolderService {
             folder.setOrigin(parseEnum(PatternOrigin.class, origin));
             folder.setLevel(parseEnum(Level.class, level));
 
-            return folderRepo.save(folder);
+            Folder savedFolder = folderRepo.save(folder);
+            return folderMapper.toDto(savedFolder);
         } catch (IOException e) {
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
@@ -102,7 +102,7 @@ public class FolderService {
     }
 
     // updateFolder updates folder locally and db
-    public Folder updateFolder(
+    public FolderDto updateFolder(
             UUID id,
             String folderName,
             String garmentType,
@@ -130,7 +130,8 @@ public class FolderService {
             folder.setOrigin(parseEnum(PatternOrigin.class, origin));
             folder.setLevel(parseEnum(Level.class, level));
 
-            return folderRepo.save(folder);
+            Folder savedFolder = folderRepo.save(folder);
+            return folderMapper.toDto(savedFolder);
 
         } catch (IOException e) {
             throw new ResponseStatusException(

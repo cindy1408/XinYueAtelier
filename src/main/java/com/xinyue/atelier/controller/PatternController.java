@@ -93,6 +93,7 @@ public class PatternController {
         @GetMapping("/preview/{patternId}")
         public ResponseEntity<Resource> previewPattern(@PathVariable UUID patternId) {
 
+                System.out.println("uuid: "+ patternId);
                 Pattern pattern = patternRepo.findById(patternId)
                         .orElseThrow(() -> new ResponseStatusException(
                                 HttpStatus.NOT_FOUND, "Pattern not found"

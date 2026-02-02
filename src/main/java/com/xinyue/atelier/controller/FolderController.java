@@ -2,7 +2,6 @@ package com.xinyue.atelier.controller;
 
 import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.model.Folder;
-import com.xinyue.atelier.respository.FolderRepo;
 import com.xinyue.atelier.service.FolderService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +18,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "http://localhost:5173", methods = { RequestMethod.GET, RequestMethod.POST,
         RequestMethod.OPTIONS })
 public class FolderController {
-    private final FolderRepo folderRepo;
     private final FolderService folderService;
 
-    public FolderController(FolderRepo folderRepo, FolderService folderService) {
-        this.folderRepo = folderRepo;
+    public FolderController( FolderService folderService) {
         this.folderService = folderService;
     }
 
@@ -43,7 +40,7 @@ public class FolderController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Folder> createRootFolder(
+    public ResponseEntity<FolderDto> createRootFolder(
             @RequestParam String title,
             @RequestParam String garmentType,
             @RequestParam String origin,
@@ -61,7 +58,7 @@ public class FolderController {
             value = "/{parentId}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public ResponseEntity<Folder> createChildFolder(
+    public ResponseEntity<FolderDto> createChildFolder(
             @PathVariable UUID parentId,
             @RequestParam String title,
             @RequestParam String garmentType,
@@ -77,7 +74,7 @@ public class FolderController {
     }
 
     @PutMapping("/{id}")
-    public Folder updateFolder(
+    public FolderDto updateFolder(
             @PathVariable UUID id,
             @RequestParam String folderName,
             @RequestParam String garmentType,

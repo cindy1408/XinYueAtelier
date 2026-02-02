@@ -1,5 +1,6 @@
 package com.xinyue.atelier.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.xinyue.atelier.GarmentType;
 import com.xinyue.atelier.Level;
 import com.xinyue.atelier.PatternOrigin;
@@ -38,8 +39,10 @@ public class Folder {
     private Folder parentFolder;
 
     @OneToMany(mappedBy = "parentFolder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Folder> subFolders;
 
+    @JsonIgnore
     public String getRelativePath() {
         if (parentFolder == null) {
             return folderName;
