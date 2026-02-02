@@ -21,6 +21,5 @@ public class Pattern {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "folder_id")
-    @JsonIgnoreProperties("patterns")
     private Folder folder;
 }
