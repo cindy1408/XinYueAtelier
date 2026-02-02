@@ -1,7 +1,6 @@
 package com.xinyue.atelier.controller;
 
 import com.xinyue.atelier.dto.FolderDto;
-import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.service.FolderService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
