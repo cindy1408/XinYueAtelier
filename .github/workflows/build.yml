@@ -43,6 +43,9 @@ jobs:
       - name: Run backend tests
         run: mvn test -Dspring.profiles.active=ci
 
+      - name: Run tests with coverage
+        run: mvn test jacoco:report
+
       - name: Run backend lint (Checkstyle)
         run: mvn checkstyle:check
 
@@ -67,6 +70,10 @@ jobs:
 
       - name: Run frontend tests
         run: npm test
+        working-directory: atelier-frontend
+
+      - name: Run frontend tests with coverage
+        run: npm test -- --coverage
         working-directory: atelier-frontend
 
       - name: Run frontend lint
