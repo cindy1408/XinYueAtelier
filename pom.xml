@@ -159,27 +159,26 @@
                         </configuration>
                     </plugin>
 
-<!--            jacoco test coverage -->
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.11</version>
-                <executions>
-                    <execution>
-                        <goals>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.8.10</version>
+                        <executions>
+                        <!-- Generate coverage after tests -->
+                        <execution>
+                            <goals>
                             <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>test</phase>
+                            <goals>
                             <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
+                            </goals>
+                        </execution>
+                        </executions>
+                    </plugin>
 
             <!-- Spotless for auto-formatting -->
 <!--                    <plugin>-->
@@ -204,5 +203,25 @@
 
         </plugins>
     </build>
+
+    <!--            jacoco test coverage -->
+                <reporting>
+                <plugins>
+                    <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.10</version>
+                    <reportSets>
+                        <reportSet>
+                        <reports>
+                            <report>xml</report>
+                            <report>html</report>
+                        </reports>
+                        </reportSet>
+                    </reportSets>
+                    </plugin>
+                </plugins>
+                </reporting>
+
 
 </project>
