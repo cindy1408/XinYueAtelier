@@ -83,3 +83,12 @@ jobs:
       - name: Build frontend
         run: npm run build
         working-directory: atelier-frontend
+
+
+  # Codecov Upload
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+    
