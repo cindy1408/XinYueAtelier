@@ -4,3 +4,6 @@ ci:
 
 lint: 
 	cd atelier-frontend && npx eslint . --fix
+
+test:
+	mvn clean test jacoco:report
