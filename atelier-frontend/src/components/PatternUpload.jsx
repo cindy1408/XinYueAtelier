@@ -21,13 +21,13 @@ function PatternUpload({ onUpload }) {
           body: formData,
         },
       );
-      if (response.ok) {
-        setTitle("");
-        setPdf(null);
-        onUpload();
-      } else {
+      if (!response.ok) {
         const errText = await response.text();
         alert("Failed to create folder: " + errText);
+      } else {
+                  setTitle("");
+                  setPdf(null);
+                  onUpload();
       }
     } catch (err) {
       console.error(err);

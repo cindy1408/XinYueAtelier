@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,7 +41,7 @@ public class Folder {
 
     @OneToMany(mappedBy = "parentFolder", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private List<Folder> subFolders;
+    private List<Folder> subFolders = new ArrayList<>();
 
     @JsonIgnore
     public String getRelativePath() {

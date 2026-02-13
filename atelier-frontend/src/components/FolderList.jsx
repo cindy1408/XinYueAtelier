@@ -42,6 +42,7 @@ function FolderList({ folders, onEdit }) {
                       flexDirection: "column",
                       marginLeft: "12px",
                       gap: "4px",
+                      color: "#333",
                     }}
                   >
                     <span>
