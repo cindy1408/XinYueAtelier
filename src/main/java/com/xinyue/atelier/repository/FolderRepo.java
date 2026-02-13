@@ -1,4 +1,4 @@
-package com.xinyue.atelier.respository;
+package com.xinyue.atelier.repository;
 
 import com.xinyue.atelier.model.Folder;
 import org.springframework.data.jpa.repository.JpaRepository;

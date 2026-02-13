@@ -5,7 +5,7 @@ import com.xinyue.atelier.Level;
 import com.xinyue.atelier.PatternOrigin;
 import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.model.Folder;
-import com.xinyue.atelier.respository.FolderRepo;
+import com.xinyue.atelier.repository.FolderRepo;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

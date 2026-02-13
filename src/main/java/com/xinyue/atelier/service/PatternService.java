@@ -2,8 +2,8 @@ package com.xinyue.atelier.service;
 
 import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.model.Pattern;
-import com.xinyue.atelier.respository.FolderRepo;
-import com.xinyue.atelier.respository.PatternRepo;
+import com.xinyue.atelier.repository.FolderRepo;
+import com.xinyue.atelier.repository.PatternRepo;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

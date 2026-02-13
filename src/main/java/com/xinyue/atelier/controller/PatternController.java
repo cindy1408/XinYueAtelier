@@ -1,7 +1,7 @@
 package com.xinyue.atelier.controller;
 
 import com.xinyue.atelier.model.Pattern;
-import com.xinyue.atelier.respository.PatternRepo;
+import com.xinyue.atelier.repository.PatternRepo;
 import com.xinyue.atelier.service.PatternService;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
