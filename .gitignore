@@ -1,5 +1,5 @@
 HELP.md
-target/
+atelier-backend/target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -35,4 +35,5 @@ build/
 .vscode/
 
 ### Secrets ###
- src/main/resources/application-secrets.properties
+application-secrets.properties
+.env
