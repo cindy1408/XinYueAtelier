@@ -1,16 +1,15 @@
-import { createContext, useContext, useState, useEffect } from "react";
-
-const AuthContext = createContext();
+import {useState, useEffect } from "react";
+import { AuthContext } from "./AuthContextInstance";
 
 export function AuthProvider({ children }) {
     const [token, setToken] = useState(localStorage.getItem("token"));
     const [user, setUser]   = useState(null);
-     const [loading, setLoading] = useState(!!localStorage.getItem("token"));
+    const [loading, setLoading] = useState(!!localStorage.getItem("token"));
 
     useEffect(() => {
         if (!token) {
-            setLoading(false); // ✅ no token, stop loading
-            return;
+            const timer = setTimeout(() => setLoading(false), 0);
+            return () => clearTimeout(timer);
         }
         fetch("http://localhost:8080/api/me", {
             headers: { Authorization: `Bearer ${token}` }
@@ -21,16 +20,15 @@ export function AuthProvider({ children }) {
             })
             .then(data => {
                 setUser(data);
-                setLoading(false); // ✅ success, stop loading
+                setLoading(false);
             })
             .catch(() => {
                 localStorage.removeItem("token");
                 setToken(null);
                 setUser(null);
-                setLoading(false); // ✅ already there
+                setLoading(false);
             });
     }, [token]);
-
 
     const login = (newToken) => {
         localStorage.setItem("token", newToken);
@@ -49,5 +47,3 @@ export function AuthProvider({ children }) {
         </AuthContext.Provider>
     );
 }
-
-export const useAuth = () => useContext(AuthContext);
