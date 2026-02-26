@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import FolderList from "./FolderList";
 import CreateFolder from "./CreateFolder";
 import EditFolderModal from "./EditFolderModal";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "./useAuth";
 
 export default function HomePage() {
   const [folders, setFolders] = useState([]);
@@ -12,21 +12,21 @@ export default function HomePage() {
 
 const { token } = useAuth();
 
-const fetchFolders = async () => {
-    try {
-        const res = await fetch("http://localhost:8080/folder", {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        const data = await res.json();
-        setFolders(data);
-    } catch (err) {
-        console.error("Failed to fetch folders", err);
-    }
-};
+   const fetchFolders = useCallback(async () => {
+        try {
+            const res = await fetch("http://localhost:8080/folder", {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            setFolders(data);
+        } catch (err) {
+            console.error("Failed to fetch folders", err);
+        }
+    }, [token]); 
 
   useEffect(() => {
-    fetchFolders();
-  }, []);
+        fetchFolders();
+    }, [fetchFolders]); 
 
   // Called by CreateFolder after new folder is created
   const handleFolderCreated = () => {

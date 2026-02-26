@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../components/useAuth";
 
 export default function AuthCallback() {
     const { login, token } = useAuth();
@@ -14,14 +14,13 @@ export default function AuthCallback() {
         } else {
             navigate("/login", { replace: true });
         }
-    }, []);
+    }, [login, navigate]);
 
-    // ✅ Wait for token to be set in context, then navigate
     useEffect(() => {
         if (token) {
             navigate("/", { replace: true });
         }
-    }, [token]);
+    }, [token, navigate]); 
 
     return <p>Signing you in...</p>;
 }

@@ -5,24 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="65f681dd-d2f6-4f0a-937d-02c658701e4d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/atelier-backend/application.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/controller/UserController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/model/User.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/oauth/JwtUtil.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/oauth/OAuth2SuccessHandler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/oauth/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/atelier-backend/src/main/resources/application-test.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/build.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/build.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/.github/workflows/build.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/data/Aphtodite/aphrodite.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/data/Aphtodite/nested folder/nested-pattern-again.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/data/Aphtodite/nested folder/nested-pattern.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/data/Aphtodite/pattern.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/data/My-Folder/image.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/data/nested-folder/Elphia.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/resources/application-ci.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/atelier-backend/src/test/java/com/xinyue/atelier/AtelierApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/test/java/com/xinyue/atelier/AtelierApplicationTests.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/AuthCallback.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/AuthCallback.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/AuthContext.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/AuthContext.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/HomePage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/HomePage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/pages/Dashbaord.jsx" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
