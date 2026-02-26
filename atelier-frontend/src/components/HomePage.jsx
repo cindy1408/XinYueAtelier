@@ -3,21 +3,26 @@ import { useEffect, useState } from "react";
 import FolderList from "./FolderList";
 import CreateFolder from "./CreateFolder";
 import EditFolderModal from "./EditFolderModal";
+import { useAuth } from "./AuthContext";
 
 export default function HomePage() {
   const [folders, setFolders] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editFolder, setEditFolder] = useState(null);
 
-  const fetchFolders = async () => {
+const { token } = useAuth();
+
+const fetchFolders = async () => {
     try {
-      const res = await fetch("http://localhost:8080/folder");
-      const data = await res.json();
-      setFolders(data);
+        const res = await fetch("http://localhost:8080/folder", {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        setFolders(data);
     } catch (err) {
-      console.error("Failed to fetch folders", err);
+        console.error("Failed to fetch folders", err);
     }
-  };
+};
 
   useEffect(() => {
     fetchFolders();
