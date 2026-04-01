@@ -1,3 +1,5 @@
+import { apiFetch } from '../api/apiFetch';
+
 function DeleteFolderModal({ folder, onClose, onSaved }) {
   return (
     <div
@@ -32,12 +34,7 @@ function DeleteFolderModal({ folder, onClose, onSaved }) {
           <button
             onClick={async () => {
               try {
-                const res = await fetch(
-                  `http://localhost:8080/folder/${folder.id}`,
-                  {
-                    method: "DELETE",
-                  },
-                );
+                const res = await apiFetch(`/folder/${folder.id}`, { method: 'DELETE' });
 
                 if (!res.ok) {
                   const text = await res.text();

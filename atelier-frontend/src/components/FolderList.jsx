@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import EditFolderModal from './EditFolderModal';
 
 function FolderList({ folders, onEdit }) {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ function FolderList({ folders, onEdit }) {
                 >
                   {folder.imagePath && (
                     <img
-                      src={`http://localhost:8080/data/${folder.imagePath}`}
+                      src={folder.imagePath}
                       alt={folder.folderName}
                       style={{
                         width: "200px",

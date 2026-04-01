@@ -31,12 +31,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             try {
                 String email = jwtUtil.getEmail(token);
                 String name  = jwtUtil.getName(token);
-
+                System.out.println("JWT valid for: " + email);
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(email, null, List.of());
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (Exception e) {
+                System.out.println("JWT failed: " + e.getMessage());
                 // Invalid token — just don't set authentication, Spring will return 401
             }
         }

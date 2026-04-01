@@ -4,6 +4,7 @@ import FolderList from "./FolderList";
 import CreateFolder from "./CreateFolder";
 import EditFolderModal from "./EditFolderModal";
 import { useAuth } from "./useAuth";
+import { apiFetch } from '../api/apiFetch';
 
 export default function HomePage() {
   const [folders, setFolders] = useState([]);
@@ -14,9 +15,7 @@ const { token } = useAuth();
 
    const fetchFolders = useCallback(async () => {
         try {
-            const res = await fetch("http://localhost:8080/folder", {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await apiFetch(`/folder`);
             const data = await res.json();
             setFolders(data);
         } catch (err) {

@@ -3,7 +3,6 @@ package com.xinyue.atelier.controller;
 import com.xinyue.atelier.model.User;
 import com.xinyue.atelier.repository.UserRepo;
 import com.xinyue.atelier.security.JwtUtil;
-import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

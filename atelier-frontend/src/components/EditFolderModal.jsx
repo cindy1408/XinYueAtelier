@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiFetch } from '../api/apiFetch';
 
 function EditFolderModal({ folder, onClose, onSaved }) {
   const [formData, setFormData] = useState({ ...folder });
@@ -23,7 +24,7 @@ function EditFolderModal({ folder, onClose, onSaved }) {
     if (newImage) data.append("image", newImage);
 
     try {
-      const res = await fetch(`http://localhost:8080/folder/${folder.id}`, {
+      const res = await apiFetch(`/folder/${folder.id}`, {
         method: "PUT",
         body: data,
       });
@@ -127,7 +128,7 @@ function EditFolderModal({ folder, onClose, onSaved }) {
           {folder.imagePath && !newImage && (
             <div style={{ marginTop: "8px" }}>
               <img
-                src={`http://localhost:8080/data/${folder.imagePath}`}
+                src={folder.imagePath}
                 alt={folder.folderName}
                 style={{
                   width: "100%",

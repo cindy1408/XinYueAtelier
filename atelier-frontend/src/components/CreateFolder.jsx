@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { apiFetch } from "../api/apiFetch";
 
 function CreateFolder({ onCreated }) {
   const { folderId } = useParams();
@@ -26,15 +27,11 @@ function CreateFolder({ onCreated }) {
     formData.append("origin", origin);
     formData.append("image", image);
 
-    const url = parentId
-      ? `http://localhost:8080/folder/${parentId}`
-      : `http://localhost:8080/folder`;
-
     try {
-      const response = await fetch(url, {
-        method: "POST",
-        body: formData,
-      });
+        const response = await apiFetch(parentId ? `/folder/${parentId}` : `/folder`, {
+          method: "POST",
+          body: formData,
+        });
 
       if (response.ok) {
         onCreated();

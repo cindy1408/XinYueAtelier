@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { apiFetch } from '../api/apiFetch';
 
 function PatternUpload({ onUpload }) {
   const { folderId } = useParams();
@@ -14,13 +15,10 @@ function PatternUpload({ onUpload }) {
     formData.append("patternPdf", pdf);
 
     try {
-      const response = await fetch(
-        `http://localhost:8080/patterns/${folderId}`,
-        {
+        const response = await apiFetch(`/patterns/${folderId}`, {
           method: "POST",
           body: formData,
-        },
-      );
+        });
       if (!response.ok) {
         const errText = await response.text();
         alert("Failed to create folder: " + errText);

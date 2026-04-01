@@ -1,7 +1,6 @@
 package com.xinyue.atelier.config;
 
 import com.xinyue.atelier.security.JwtAuthFilter;
-import com.xinyue.atelier.security.JwtUtil;
 import com.xinyue.atelier.security.OAuth2SuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -31,11 +30,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/public/**").permitAll()
-                        .requestMatchers("/api/auth/google/callback/*").permitAll()
-                        .requestMatchers("/api/folders/**", "/api/patterns/**").authenticated()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/oauth2/callback/*").permitAll()
+                        .requestMatchers("/folder/**", "/patterns/**").authenticated()
+                        .requestMatchers("/api/me").authenticated()
                         .anyRequest().authenticated()
                 )
+
                 .oauth2Login(oauth -> oauth
                         .authorizationEndpoint(ep -> ep
                                 .baseUri("/api/auth/oauth2/authorization"))
@@ -56,7 +57,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "https://xyatelier.com"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

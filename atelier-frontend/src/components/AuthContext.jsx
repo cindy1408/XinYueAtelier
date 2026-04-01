@@ -1,5 +1,6 @@
 import {useState, useEffect } from "react";
 import { AuthContext } from "./AuthContextInstance";
+import { apiFetch } from '../api/apiFetch';
 
 export function AuthProvider({ children }) {
     const [token, setToken] = useState(localStorage.getItem("token"));
@@ -11,7 +12,7 @@ export function AuthProvider({ children }) {
             const timer = setTimeout(() => setLoading(false), 0);
             return () => clearTimeout(timer);
         }
-        fetch("http://localhost:8080/api/me", {
+        apiFetch(`/api/me`, {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(res => {

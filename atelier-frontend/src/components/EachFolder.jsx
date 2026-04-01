@@ -7,6 +7,8 @@ import CreateFolder from "./CreateFolder";
 import FolderList from "./FolderList";
 import EditFolderModal from "./EditFolderModal";
 import DeleteFileModal from "./DeleteFileModal";
+import { apiFetch } from '../api/apiFetch';
+import { API_URL } from '../config';
 
 function EachFolder() {
   const { folderId } = useParams();
@@ -19,7 +21,7 @@ function EachFolder() {
 
   const fetchFolder = useCallback(async () => {
     try {
-      const res = await fetch(`http://localhost:8080/folder/${folderId}`);
+      const res = await apiFetch(`/folder/${folderId}`);
       const data = await res.json();
       setFolder(data);
     } catch (err) {
@@ -29,9 +31,7 @@ function EachFolder() {
 
   const fetchChildren = useCallback(async () => {
     try {
-      const res = await fetch(
-        `http://localhost:8080/folder/${folderId}/children`,
-      );
+    const res = await apiFetch(`/folder/${folderId}/children`);
       const data = await res.json();
 
       setChildren(Array.isArray(data) ? data : []);
@@ -42,9 +42,7 @@ function EachFolder() {
 
   const fetchFiles = useCallback(async () => {
     try {
-      const res = await fetch(
-        `http://localhost:8080/patterns/${folderId}/files`,
-      );
+const res = await apiFetch(`/patterns/${folderId}/files`);
       const data = await res.json();
       setFiles(data);
     } catch (err) {
@@ -54,9 +52,7 @@ function EachFolder() {
 
   const handleDeleteFile = async (fileId) => {
     try {
-      const res = await fetch(`http://localhost:8080/patterns/${fileId}`, {
-        method: "DELETE",
-      });
+const res = await apiFetch(`/patterns/${fileId}`, { method: 'DELETE' });
       if (res.ok) {
         fetchFiles();
       } else {
@@ -123,7 +119,7 @@ function EachFolder() {
               }}
             >
               <iframe
-                src={`http://localhost:8080/patterns/preview/${file.id}`}
+                src={`${API_URL}/patterns/preview/${file.id}`}
                 width="200px"
                 height="260px"
                 style={{ border: "none" }}
@@ -134,7 +130,7 @@ function EachFolder() {
                 <button
                   onClick={() =>
                     window.open(
-                      `http://localhost:8080/patterns/download/${file.id}`,
+                      `${API_URL}/patterns/download/${file.id}`,
                       "_blank",
                     )
                   }
@@ -165,7 +161,7 @@ function EachFolder() {
           onClick={() => setModalFile(null)}
         >
           <iframe
-            src={`http://localhost:8080/patterns/preview/${modalFile.id}`}
+            src={`${API_URL}/patterns/preview/${modalFile.id}`}
             style={{
               width: "90%",
               height: "90%",

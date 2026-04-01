@@ -1,7 +1,6 @@
 package com.xinyue.atelier.controller;
 
 import com.xinyue.atelier.dto.FolderDto;
-import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.service.FolderService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +14,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/folder")
-@CrossOrigin(origins = "http://localhost:5173", methods = { RequestMethod.GET, RequestMethod.POST,
-        RequestMethod.OPTIONS })
 public class FolderController {
     private final FolderService folderService;
 

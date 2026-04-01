@@ -3,34 +3,40 @@ package com.xinyue.atelier.service;
 import com.xinyue.atelier.GarmentType;
 import com.xinyue.atelier.Level;
 import com.xinyue.atelier.PatternOrigin;
+import com.xinyue.atelier.config.TestConfig;
 import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.repository.FolderRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.mock.web.MockMultipartFile;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
 class FolderServiceTest {
 
     private FolderService folderService;
     private FolderRepo folderRepo;
     private FolderMapper folderMapper;
+    @TestBean
+    private S3Client s3Client;
 
     @BeforeEach
     void setUp() {
         folderRepo = mock(FolderRepo.class);
         folderMapper = mock(FolderMapper.class);
+        s3Client = mock(S3Client.class);
 
-        folderService = new FolderService(folderRepo, folderMapper);
+        folderService = new FolderService(s3Client, folderRepo, folderMapper);
     }
 
     @Test

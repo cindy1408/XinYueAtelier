@@ -9,8 +9,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
-    <AuthProvider>
       <BrowserRouter>
+             <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
@@ -25,8 +25,8 @@ function App() {
             </ProtectedRoute>
           } />
         </Routes>
+            </AuthProvider>
       </BrowserRouter>
-    </AuthProvider>
   );
 }
 

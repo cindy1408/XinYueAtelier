@@ -1,6 +1,9 @@
+import { apiFetch } from '../api/apiFetch';
+import { API_URL } from '../config';
+
 export default function Login() {
 const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8080/api/auth/oauth2/authorization/google";
+    window.location.href = `${API_URL}/api/auth/oauth2/authorization/google`;
 };
 
     return (

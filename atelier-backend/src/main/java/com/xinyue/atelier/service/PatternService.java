@@ -5,68 +5,95 @@ import com.xinyue.atelier.model.Pattern;
 import com.xinyue.atelier.repository.FolderRepo;
 import com.xinyue.atelier.repository.PatternRepo;
 import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.UUID;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import static com.xinyue.atelier.service.FolderService.UPLOAD_ROOT;
+import java.io.IOException;
+import java.util.UUID;
 
 @Service
 public class PatternService {
+
+    @Value("${aws.s3.bucket}")
+    private String bucketName;
+
+    private final S3Client s3Client;
     private final PatternRepo patternRepo;
     private final FolderRepo folderRepo;
 
-    public PatternService(
-            PatternRepo patternRepo,
-            FolderRepo folderRepo) {
+    public PatternService(S3Client s3Client, PatternRepo patternRepo, FolderRepo folderRepo) {
+        this.s3Client = s3Client;
         this.patternRepo = patternRepo;
         this.folderRepo = folderRepo;
     }
 
     public Pattern create(String title, MultipartFile pdf, UUID folderId) {
-
         Folder folder = folderRepo.findById(folderId)
-                .orElseThrow(() ->
-                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
 
         try {
-            Path folderPath = UPLOAD_ROOT.resolve(folder.getRelativePath());
-            Files.createDirectories(folderPath);
-
-            Path pdfPath = saveFile(pdf, folderPath, title);
+            String pdfUrl = uploadPdfToS3(folder.getFolderName(), title, pdf);
 
             Pattern pattern = new Pattern();
             pattern.setTitle(title);
             pattern.setFolder(folder);
-            pattern.setPdfPath(UPLOAD_ROOT.relativize(pdfPath).toString());
+            pattern.setPdfPath(pdfUrl);
 
             return patternRepo.save(pattern);
 
         } catch (IOException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to create pattern",
-                    e
-            );
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create pattern", e);
         }
     }
 
-     Path saveFile(MultipartFile file, Path dir, String title) throws IOException {
-        Files.createDirectories(dir);
+    public void delete(UUID patternId) {
+        Pattern pattern = patternRepo.findById(patternId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pattern not found"));
 
-        String extension = FilenameUtils.getExtension(file.getOriginalFilename());
-        String filename = safeName(title) + "." + extension;
+        if (pattern.getPdfPath() != null) {
+            deletePdfFromS3(pattern.getPdfPath());
+        }
 
-        Path path = dir.resolve(filename);
-        file.transferTo(path);
+        patternRepo.delete(pattern);
+    }
 
-        return path;
+    // --- Private helpers ---
+
+    private String uploadPdfToS3(String folderName, String title, MultipartFile pdf) throws IOException {
+        String extension = FilenameUtils.getExtension(pdf.getOriginalFilename());
+        String key = "patterns/" + safeName(folderName) + "/" + safeName(title) + "." + extension;
+
+        s3Client.putObject(
+                PutObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .contentType("application/pdf")
+                        .build(),
+                RequestBody.fromBytes(pdf.getBytes())
+        );
+
+        return "https://" + bucketName + ".s3.eu-west-2.amazonaws.com/" + key;
+    }
+
+    private void deletePdfFromS3(String pdfUrl) {
+        String prefix = "https://" + bucketName + ".s3.eu-west-2.amazonaws.com/";
+        if (pdfUrl.startsWith(prefix)) {
+            String key = pdfUrl.substring(prefix.length());
+            s3Client.deleteObject(
+                    DeleteObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(key)
+                            .build()
+            );
+        }
     }
 
     private String safeName(String input) {

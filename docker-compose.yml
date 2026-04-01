@@ -23,11 +23,22 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/atelierdb
       SPRING_DATASOURCE_USERNAME: atelieruser
       SPRING_DATASOURCE_PASSWORD: password
+      JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      S3_BUCKET: ${S3_BUCKET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL}
 
   frontend:
     build:
       context: ./atelier-frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
     ports:
       - "5173:80"
     depends_on:
