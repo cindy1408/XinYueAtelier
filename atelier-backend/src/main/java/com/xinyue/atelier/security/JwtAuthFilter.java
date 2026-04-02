@@ -41,7 +41,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 // Invalid token — just don't set authentication, Spring will return 401
             }
         }
-
+        System.out.println("AUTH HEADER: " + request.getHeader("Authorization"));
+        System.out.println("REQUEST URI: " + request.getRequestURI());
         filterChain.doFilter(request, response);
     }
 }

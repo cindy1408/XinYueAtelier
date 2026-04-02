@@ -15,8 +15,11 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.UUID;
 
 @Service
@@ -28,11 +31,13 @@ public class PatternService {
     private final S3Client s3Client;
     private final PatternRepo patternRepo;
     private final FolderRepo folderRepo;
+    private final S3Presigner s3Presigner;
 
-    public PatternService(S3Client s3Client, PatternRepo patternRepo, FolderRepo folderRepo) {
+    public PatternService(S3Client s3Client, PatternRepo patternRepo, FolderRepo folderRepo, S3Presigner s3Presigner) {
         this.s3Client = s3Client;
         this.patternRepo = patternRepo;
         this.folderRepo = folderRepo;
+        this.s3Presigner = s3Presigner;
     }
 
     public Pattern create(String title, MultipartFile pdf, UUID folderId) {
@@ -101,5 +106,17 @@ public class PatternService {
                 .trim()
                 .replaceAll("\\s+", "-")
                 .replaceAll("[^a-zA-Z0-9-_]", "");
+    }
+
+    public String generatePresignedUrl(String pdfUrl) {
+        String prefix = "https://" + bucketName + ".s3.eu-west-2.amazonaws.com/";
+        String key = pdfUrl.substring(prefix.length());
+
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(15))
+                .getObjectRequest(r -> r.bucket(bucketName).key(key))
+                .build();
+
+        return s3Presigner.presignGetObject(presignRequest).url().toString();
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -34,6 +35,7 @@ public class PatternController {
 
     @GetMapping("/{folderId}/files")
     public List<Pattern> getFilesByFolderId(@PathVariable UUID folderId) {
+        System.out.println("HIT getFilesByFolderId: " + folderId);
         return patternRepo.findAllByFolderId(folderId);
     }
 
@@ -53,12 +55,11 @@ public class PatternController {
     }
 
     @GetMapping("/preview/{patternId}")
-    public ResponseEntity<Void> previewPattern(@PathVariable UUID patternId) {
+    public ResponseEntity<Map<String, String>> previewPattern(@PathVariable UUID patternId) {
         Pattern pattern = patternRepo.findById(patternId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pattern not found"));
 
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Location", pattern.getPdfPath())
-                .build();
+        String presignedUrl = patternService.generatePresignedUrl(pattern.getPdfPath());
+        return ResponseEntity.ok(Map.of("url", presignedUrl));
     }
 }

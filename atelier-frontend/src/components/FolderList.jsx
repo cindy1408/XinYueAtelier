@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import EditFolderModal from './EditFolderModal';
 
-function FolderList({ folders, onEdit }) {
+function FolderList({ folders, onEdit, onDelete }) {
   const navigate = useNavigate();
   const [editFolder, setEditFolder] = useState(null);
 
@@ -64,6 +64,7 @@ function FolderList({ folders, onEdit }) {
                     </button>
 
                     <button onClick={() => onEdit(folder)}>✏️ Edit</button>
+                    <button onClick={() => onDelete(folder)}>🗑️ Delete</button>
                   </div>
                 </div>
               ),

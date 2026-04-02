@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiFetch } from '../api/apiFetch';
 
-function PatternUpload({ onUpload }) {
+function PatternUpload({ onUpload, uploadPath }) {
   const { folderId } = useParams();
   const [title, setTitle] = useState("");
   const [pdf, setPdf] = useState(null);
@@ -14,31 +14,31 @@ function PatternUpload({ onUpload }) {
     formData.append("title", title);
     formData.append("patternPdf", pdf);
 
+    const path = uploadPath ?? `/patterns/${folderId}`;
+
     try {
-        const response = await apiFetch(`/patterns/${folderId}`, {
-          method: "POST",
-          body: formData,
-        });
+      const response = await apiFetch(path, {
+        method: "POST",
+        body: formData,
+      });
       if (!response.ok) {
         const errText = await response.text();
-        alert("Failed to create folder: " + errText);
+        alert("Failed to upload pattern: " + errText);
       } else {
-                  setTitle("");
-                  setPdf(null);
-                  onUpload();
+        setTitle("");
+        setPdf(null);
+        onUpload();
+        alert("Pattern uploaded");
       }
     } catch (err) {
       console.error(err);
       alert("Error uploading pattern");
-      return;
     }
-    alert("Pattern uploaded");
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <h2>Upload Pattern</h2>
-
       <label>
         Title
         <input
@@ -48,7 +48,6 @@ function PatternUpload({ onUpload }) {
           required
         />
       </label>
-
       <label>
         PDF Pattern
         <input
@@ -58,7 +57,6 @@ function PatternUpload({ onUpload }) {
           required
         />
       </label>
-
       <button type="submit">Upload</button>
     </form>
   );

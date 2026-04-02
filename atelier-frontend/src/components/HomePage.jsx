@@ -41,6 +41,20 @@ const { token } = useAuth();
     setEditFolder(null);
   };
 
+  const handleDeleteFolder = async (folder) => {
+  if (!window.confirm(`Delete "${folder.folderName}" and all its contents?`)) return;
+  try {
+    const res = await apiFetch(`/folder/${folder.id}`, { method: 'DELETE' });
+    if (res.ok) {
+      fetchFolders();
+    } else {
+      console.error("Failed to delete folder");
+    }
+  } catch (err) {
+    console.error("Error deleting folder:", err);
+  }
+};
+
   return (
     <div>
       <h2>Folders</h2>
@@ -60,6 +74,7 @@ const { token } = useAuth();
       <FolderList
         folders={folders}
         onEdit={(folder) => setEditFolder(folder)}
+        onDelete={handleDeleteFolder}
       />
 
       {editFolder && (

@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-
 import { useParams } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import PatternUpload from "./PatternUpload";
@@ -9,6 +7,36 @@ import EditFolderModal from "./EditFolderModal";
 import DeleteFileModal from "./DeleteFileModal";
 import { apiFetch } from '../api/apiFetch';
 import { API_URL } from '../config';
+
+function PatternPreview({ fileId, width = "200px", height = "260px" }) {
+  const [blobUrl, setBlobUrl] = useState(null);
+
+  useEffect(() => {
+    let objectUrl;
+    apiFetch(`/patterns/preview/${fileId}`)
+      .then(res => res.json())
+      .then(({ url }) => fetch(url))          // fetch the S3 PDF directly
+      .then(res => res.blob())                 // convert to blob
+      .then(blob => {
+        objectUrl = URL.createObjectURL(blob); // create local blob URL
+        setBlobUrl(objectUrl);
+      })
+      .catch(console.error);
+
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl); // cleanup on unmount
+    };
+  }, [fileId]);
+
+  if (!blobUrl) return <div style={{ width, height, display: "flex", alignItems: "center", justifyContent: "center" }}>Loading...</div>;
+
+  return (
+  <iframe
+    src={blobUrl}
+    style={{ width, height, border: "none", borderRadius: "8px" }}
+  />
+);
+}
 
 function EachFolder() {
   const { folderId } = useParams();
@@ -31,9 +59,8 @@ function EachFolder() {
 
   const fetchChildren = useCallback(async () => {
     try {
-    const res = await apiFetch(`/folder/${folderId}/children`);
+      const res = await apiFetch(`/folder/${folderId}/children`);
       const data = await res.json();
-
       setChildren(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch children:", err);
@@ -42,7 +69,7 @@ function EachFolder() {
 
   const fetchFiles = useCallback(async () => {
     try {
-const res = await apiFetch(`/patterns/${folderId}/files`);
+      const res = await apiFetch(`/patterns/${folderId}/files`);
       const data = await res.json();
       setFiles(data);
     } catch (err) {
@@ -52,7 +79,7 @@ const res = await apiFetch(`/patterns/${folderId}/files`);
 
   const handleDeleteFile = async (fileId) => {
     try {
-const res = await apiFetch(`/patterns/${fileId}`, { method: 'DELETE' });
+      const res = await apiFetch(`/patterns/${fileId}`, { method: 'DELETE' });
       if (res.ok) {
         fetchFiles();
       } else {
@@ -62,6 +89,20 @@ const res = await apiFetch(`/patterns/${fileId}`, { method: 'DELETE' });
       console.error("Error deleting file:", err);
     }
   };
+
+  const handleDeleteFolder = async (folder) => {
+  if (!window.confirm(`Delete "${folder.folderName}" and all its contents?`)) return;
+  try {
+    const res = await apiFetch(`/folder/${folder.id}`, { method: 'DELETE' });
+    if (res.ok) {
+      fetchChildren(); 
+    } else {
+      console.error("Failed to delete folder");
+    }
+  } catch (err) {
+    console.error("Error deleting folder:", err);
+  }
+};
 
   useEffect(() => {
     fetchFolder();
@@ -75,13 +116,11 @@ const res = await apiFetch(`/patterns/${fileId}`, { method: 'DELETE' });
 
       <PatternUpload onUpload={fetchFiles} />
 
-      {/* Create a subfolder under this folder */}
       <CreateFolder
         parentId={folderId}
-        onCreated={() => fetchChildren()} // refresh subfolders after creation
+        onCreated={() => fetchChildren()}
       />
 
-      {/* Subfolders */}
       <h3>Subfolders</h3>
       {children.length === 0 ? (
         <p>No subfolders</p>
@@ -89,6 +128,7 @@ const res = await apiFetch(`/patterns/${fileId}`, { method: 'DELETE' });
         <FolderList
           folders={children}
           onEdit={(folder) => setEditFolder(folder)}
+          onDelete={handleDeleteFolder}
         />
       )}
 
@@ -96,13 +136,7 @@ const res = await apiFetch(`/patterns/${fileId}`, { method: 'DELETE' });
       {files.length === 0 ? (
         <p>No files in this folder</p>
       ) : (
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "24px",
-          }}
-        >
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "24px" }}>
           {files.map((file) => (
             <div
               key={file.id}
@@ -118,21 +152,13 @@ const res = await apiFetch(`/patterns/${fileId}`, { method: 'DELETE' });
                 gap: "12px",
               }}
             >
-              <iframe
-                src={`${API_URL}/patterns/preview/${file.id}`}
-                width="200px"
-                height="260px"
-                style={{ border: "none" }}
-              />
+              <PatternPreview fileId={file.id} />
               <h4 style={{ textAlign: "center" }}>{file.title}</h4>
               <div style={{ display: "flex", gap: "8px" }}>
                 <button onClick={() => setModalFile(file)}>View</button>
                 <button
                   onClick={() =>
-                    window.open(
-                      `${API_URL}/patterns/download/${file.id}`,
-                      "_blank",
-                    )
+                    window.open(`${API_URL}/patterns/download/${file.id}`, "_blank")
                   }
                 >
                   Download
@@ -160,15 +186,7 @@ const res = await apiFetch(`/patterns/${fileId}`, { method: 'DELETE' });
           }}
           onClick={() => setModalFile(null)}
         >
-          <iframe
-            src={`${API_URL}/patterns/preview/${modalFile.id}`}
-            style={{
-              width: "90%",
-              height: "90%",
-              border: "none",
-              borderRadius: "8px",
-            }}
-          />
+          <PatternPreview fileId={modalFile.id} width="85vw" height="85vh" />
         </div>
       )}
 

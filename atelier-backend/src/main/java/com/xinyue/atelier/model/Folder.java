@@ -43,6 +43,10 @@ public class Folder {
     @JsonIgnore
     private List<Folder> subFolders = new ArrayList<>();
 
+    @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Pattern> patterns = new ArrayList<>();
+
     @JsonIgnore
     public String getRelativePath() {
         if (parentFolder == null) {
