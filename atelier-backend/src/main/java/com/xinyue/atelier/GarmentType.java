@@ -9,6 +9,7 @@ public enum GarmentType {
     DRESS,
     KNIT,
     OUTERWEAR,
+    SET,
     SKIRT,
     TROUSERS,
     UNDERWEAR

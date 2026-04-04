@@ -6,14 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="65f681dd-d2f6-4f0a-937d-02c658701e4d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/config/S3Config.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/config/S3Config.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/GarmentType.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/GarmentType.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/controller/PatternController.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/controller/PatternController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/model/Folder.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/model/Folder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/model/Pattern.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/model/Pattern.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/repository/FolderRepo.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/repository/FolderRepo.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/security/JwtAuthFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/security/JwtAuthFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/service/PatternService.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/service/PatternService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/service/FolderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/service/FolderService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/CreateFolder.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/CreateFolder.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/EditFolderModal.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/EditFolderModal.jsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

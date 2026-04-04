@@ -91,6 +91,7 @@ function EditFolderModal({ folder, onClose, onSaved }) {
           <option value="DRESS">Dress</option>
           <option value="KNIT">Knit</option>
           <option value="OUTERWEAR">Outerwear</option>
+          <option value="SET">Set</option>
           <option value="SKIRT">Skirt</option>
           <option value="TROUSERS">Trousers</option>
           <option value="UNDERWEAR">Underwear</option>

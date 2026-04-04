@@ -33,7 +33,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/auth/oauth2/callback/*").permitAll()
                         .requestMatchers("/patterns/preview/**").permitAll()
-                        .requestMatchers("/folder/**", "/patterns/**").authenticated()
+                        .requestMatchers("/folder", "/folder/**", "/patterns/**").authenticated()
                         .requestMatchers("/api/me").authenticated()
                         .anyRequest().authenticated()
                 )

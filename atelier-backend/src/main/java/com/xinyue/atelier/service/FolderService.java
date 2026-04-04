@@ -65,6 +65,7 @@ public class FolderService {
             MultipartFile image,
             UUID parentId
     ) {
+        System.out.println("Creating folder with garmentType: " + garmentType);
         Folder folder = new Folder();
 
         if (parentId != null) {
@@ -72,9 +73,9 @@ public class FolderService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent folder not found"));
             folder.setParentFolder(parent);
         }
-
         folder.setFolderName(title);
         folder.setGarmentType(parseEnum(GarmentType.class, garmentType));
+        System.out.println("Parsed garmentType: " + folder.getGarmentType());
         folder.setOrigin(parseEnum(PatternOrigin.class, origin));
         folder.setLevel(parseEnum(Level.class, level));
 
