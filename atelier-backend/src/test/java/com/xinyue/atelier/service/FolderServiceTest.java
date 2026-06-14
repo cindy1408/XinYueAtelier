@@ -45,6 +45,7 @@ class FolderServiceTest {
         UUID id = UUID.randomUUID();
 
         Folder folder = new Folder();
+        folder.setRef(1);
         folder.setId(id);
         folder.setFolderName("Folder");
         folder.setOrigin(PatternOrigin.DRAFTED);
@@ -93,6 +94,7 @@ class FolderServiceTest {
     @Test
     void createFolder_withValidData_createsFolder() throws Exception {
         // Arrange
+        Integer ref = 1;
         String title = "My Folder";
         String garmentType = "COURSE";
         String origin = "DRAFTED";
@@ -121,7 +123,7 @@ class FolderServiceTest {
         when(folderMapper.toDto(savedFolder)).thenReturn(dto);
 
         // Act
-        FolderDto result = folderService.createFolder(title, garmentType, origin, level, image, null);
+        FolderDto result = folderService.createFolder(ref, title, garmentType, origin, level, image, null);
 
         // Assert
         assertNotNull(result);
@@ -142,7 +144,7 @@ class FolderServiceTest {
         // Act & Assert
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () ->
                 folderService.createFolder(
-                        "Title", "COURSE", "DRAFTED", "BEGINNER", null, parentId
+                        1, "Title", "COURSE", "DRAFTED", "BEGINNER", null, parentId
                 )
         );
 

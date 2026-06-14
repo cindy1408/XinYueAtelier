@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState, useCallback } from "react";
 import FolderList from "./FolderList";
 import CreateFolder from "./CreateFolder";
@@ -10,50 +9,54 @@ export default function HomePage() {
   const [folders, setFolders] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editFolder, setEditFolder] = useState(null);
+  const [activeTab, setActiveTab] = useState("patterns"); // 👈 new
 
-const { token } = useAuth();
+  const { token } = useAuth();
 
-   const fetchFolders = useCallback(async () => {
-        try {
-            const res = await apiFetch(`/folder`);
-            const data = await res.json();
-            setFolders(data);
-        } catch (err) {
-            console.error("Failed to fetch folders", err);
-        }
-    }, [token]); 
+  const fetchFolders = useCallback(async () => {
+    try {
+      const res = await apiFetch(`/folder`);
+      const data = await res.json();
+      setFolders(data);
+    } catch (err) {
+      console.error("Failed to fetch folders", err);
+    }
+  }, [token]);
 
   useEffect(() => {
-        fetchFolders();
-    }, [fetchFolders]); 
+    fetchFolders();
+  }, [fetchFolders]);
 
-  // Called by CreateFolder after new folder is created
   const handleFolderCreated = () => {
     fetchFolders();
     setShowForm(false);
   };
 
-  // Called by EditFolderModal after folder is updated
   const handleFolderUpdated = (updatedFolder) => {
     setFolders((prev) =>
-      prev.map((f) => (f.id === updatedFolder.id ? updatedFolder : f)),
+      prev.map((f) => (f.id === updatedFolder.id ? updatedFolder : f))
     );
     setEditFolder(null);
   };
 
   const handleDeleteFolder = async (folder) => {
-  if (!window.confirm(`Delete "${folder.folderName}" and all its contents?`)) return;
-  try {
-    const res = await apiFetch(`/folder/${folder.id}`, { method: 'DELETE' });
-    if (res.ok) {
-      fetchFolders();
-    } else {
-      console.error("Failed to delete folder");
+    if (!window.confirm(`Delete "${folder.folderName}" and all its contents?`)) return;
+    try {
+      const res = await apiFetch(`/folder/${folder.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchFolders();
+      } else {
+        console.error("Failed to delete folder");
+      }
+    } catch (err) {
+      console.error("Error deleting folder:", err);
     }
-  } catch (err) {
-    console.error("Error deleting folder:", err);
-  }
-};
+  };
+
+  const courseFolders = folders.filter(f => f.garmentType === "COURSE");
+  const patternFolders = folders.filter(f => f.garmentType !== "COURSE");
+
+  const displayedFolders = activeTab === "courses" ? courseFolders : patternFolders;
 
   return (
     <div>
@@ -64,15 +67,26 @@ const { token } = useAuth();
       </button>
 
       {showForm && (
-        <CreateFolder
-          onCreated={() => {
-            handleFolderCreated();
-          }}
-        />
+        <CreateFolder onCreated={handleFolderCreated} />
       )}
 
+      <div style={{ display: "flex", gap: "8px", margin: "16px 0" }}>
+        <button
+          onClick={() => setActiveTab("patterns")}
+          style={{ fontWeight: activeTab === "patterns" ? "bold" : "normal" }}
+        >
+          Patterns
+        </button>
+        <button
+          onClick={() => setActiveTab("courses")}
+          style={{ fontWeight: activeTab === "courses" ? "bold" : "normal" }}
+        >
+          Courses
+        </button>
+      </div>
+
       <FolderList
-        folders={folders}
+        folders={displayedFolders}
         onEdit={(folder) => setEditFolder(folder)}
         onDelete={handleDeleteFolder}
       />

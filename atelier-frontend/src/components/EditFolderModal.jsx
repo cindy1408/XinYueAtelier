@@ -67,6 +67,14 @@ function EditFolderModal({ folder, onClose, onSaved }) {
       >
         <h2>Edit Folder</h2>
 
+          <input
+          name="ref"
+          value={formData.ref}
+          onChange={handleChange}
+          placeholder=""
+          style={{ width: "100%", marginBottom: "8px" }}
+        />
+
         {/* Folder Name */}
         <input
           name="folderName"

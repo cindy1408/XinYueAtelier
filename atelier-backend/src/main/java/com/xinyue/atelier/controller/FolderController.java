@@ -38,6 +38,7 @@ public class FolderController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FolderDto> createRootFolder(
+            @RequestParam Integer ref,
             @RequestParam String title,
             @RequestParam String garmentType,
             @RequestParam String origin,
@@ -46,7 +47,7 @@ public class FolderController {
     ) {
         return ResponseEntity.ok(
                 folderService.createFolder(
-                        title, garmentType, origin, level, image, null
+                        ref, title, garmentType, origin, level, image, null
                 )
         );
     }
@@ -57,6 +58,7 @@ public class FolderController {
     )
     public ResponseEntity<FolderDto> createChildFolder(
             @PathVariable UUID parentId,
+            @RequestParam Integer ref,
             @RequestParam String title,
             @RequestParam String garmentType,
             @RequestParam String origin,
@@ -65,7 +67,7 @@ public class FolderController {
     ) {
         return ResponseEntity.ok(
                 folderService.createFolder(
-                        title, garmentType, origin, level, image, parentId
+                        ref, title, garmentType, origin, level, image, parentId
                 )
         );
     }
@@ -73,13 +75,14 @@ public class FolderController {
     @PutMapping("/{id}")
     public FolderDto updateFolder(
             @PathVariable UUID id,
+            @RequestParam Integer ref,
             @RequestParam String folderName,
             @RequestParam String garmentType,
             @RequestParam String origin,
             @RequestParam String level,
             @RequestParam(required = false) MultipartFile image
     ) {
-        return folderService.updateFolder(id, folderName, garmentType, origin, level, image);
+        return folderService.updateFolder(id, ref, folderName, garmentType, origin, level, image);
     }
 
     @DeleteMapping("/{id}")

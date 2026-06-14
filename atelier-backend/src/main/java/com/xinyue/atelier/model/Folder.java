@@ -22,6 +22,9 @@ public class Folder {
 
     private String folderName;
 
+    @Column(name = "ref")
+    private Integer ref;
+
     private String imagePath;
 
     @Enumerated(EnumType.STRING)

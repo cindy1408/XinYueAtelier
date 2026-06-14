@@ -58,6 +58,7 @@ public class FolderService {
     }
 
     public FolderDto createFolder(
+            Integer ref,
             String title,
             String garmentType,
             String origin,
@@ -73,6 +74,8 @@ public class FolderService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent folder not found"));
             folder.setParentFolder(parent);
         }
+
+        folder.setRef(ref);
         folder.setFolderName(title);
         folder.setGarmentType(parseEnum(GarmentType.class, garmentType));
         System.out.println("Parsed garmentType: " + folder.getGarmentType());
@@ -94,6 +97,7 @@ public class FolderService {
 
     public FolderDto updateFolder(
             UUID id,
+            Integer ref,
             String folderName,
             String garmentType,
             String origin,
@@ -113,6 +117,7 @@ public class FolderService {
                 folder.setImagePath(imageUrl);
             }
 
+            folder.setRef(ref);
             folder.setFolderName(folderName);
             folder.setGarmentType(parseEnum(GarmentType.class, garmentType));
             folder.setOrigin(parseEnum(PatternOrigin.class, origin));

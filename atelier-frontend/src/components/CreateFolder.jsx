@@ -6,6 +6,7 @@ function CreateFolder({ onCreated }) {
   const { folderId } = useParams();
   const parentId = folderId ?? null;
   const [title, setTitle] = useState("");
+  const [ref, setRef] = useState("");
   const [garmentType, setGarmentType] = useState("COURSE");
   const [level, setLevel] = useState("BEGINNER");
   const [origin, setOrigin] = useState("DRAFTED");
@@ -21,6 +22,7 @@ function CreateFolder({ onCreated }) {
     setLoading(true);
 
     const formData = new FormData();
+    formData.append("ref", ref);
     formData.append("title", title);
     formData.append("garmentType", garmentType);
     formData.append("level", level);
@@ -35,6 +37,7 @@ function CreateFolder({ onCreated }) {
 
       if (response.ok) {
         onCreated();
+        setRef(0);
         setTitle("");
         setGarmentType("COURSE");
         setLevel("BEGINNER");
@@ -55,6 +58,16 @@ function CreateFolder({ onCreated }) {
   return (
     <form onSubmit={handleSubmit}>
       <h2>Create Folder</h2>
+
+      <label>
+        Reference 
+        <input
+          type="number"
+          value={ref}
+          onChange={(e) => setRef(e.target.value)}
+          required
+        />
+      </label>
 
       <label>
         Folder Name
