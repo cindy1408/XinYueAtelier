@@ -35,6 +35,7 @@ build/
 .vscode/
 
 ### Secrets ###
+.atelier-backend/src/main/resources/application-secret.properties
 application-secret.properties
 .env
 client_secret.json
