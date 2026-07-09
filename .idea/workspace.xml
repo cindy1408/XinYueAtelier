@@ -5,110 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="65f681dd-d2f6-4f0a-937d-02c658701e4d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/atelier-backend/src/main/resources/db/migration/V1__add_ref_to_folder.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.github/workflows/build.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/build.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/.gitattributes" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/.gitattributes" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/.mvn/wrapper/maven-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/mvnw.cmd" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/mvnw.cmd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/AtelierApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/AtelierApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/GarmentType.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/GarmentType.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/Level.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/Level.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/PatternOrigin.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/PatternOrigin.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/config/S3Config.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/config/S3Config.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/controller/FolderController.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/controller/FolderController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/controller/PatternController.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/controller/PatternController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/controller/UserController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/dto/FolderDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/dto/FolderDto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/model/Folder.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/model/Folder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/model/Pattern.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/model/Pattern.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/model/User.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/repository/FolderRepo.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/repository/FolderRepo.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/repository/PatternRepo.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/repository/PatternRepo.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/repository/UserRepo.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/repository/UserRepo.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/security/JwtAuthFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/security/JwtAuthFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/security/JwtUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/security/JwtUtil.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/security/OAuth2SuccessHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/security/OAuth2SuccessHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/service/FolderMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/service/FolderMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/service/FolderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/service/FolderService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/service/PatternService.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/service/PatternService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/service/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/resources/application-dev.properties" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/resources/application-dev.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/resources/application-prod.properties" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/resources/application-prod.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/resources/application-test.properties" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/resources/application-test.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/test/java/com/xinyue/atelier/AtelierApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/test/java/com/xinyue/atelier/AtelierApplicationTests.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/test/java/com/xinyue/atelier/config/TestConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/test/java/com/xinyue/atelier/config/TestConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/test/java/com/xinyue/atelier/service/FolderServiceTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/test/java/com/xinyue/atelier/service/FolderServiceTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/coverage/FolderList.jsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/coverage/FolderList.jsx.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/coverage/base.css" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/coverage/base.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/coverage/block-navigation.js" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/coverage/block-navigation.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/coverage/favicon.png" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/coverage/favicon.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/coverage/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/coverage/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/coverage/prettify.css" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/coverage/prettify.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/coverage/prettify.js" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/coverage/prettify.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/coverage/sort-arrow-sprite.png" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/coverage/sort-arrow-sprite.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/coverage/sorter.js" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/coverage/sorter.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/eslint.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/eslint.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/nginx.conf" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/nginx.conf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/public/vite.svg" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/public/vite.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/App.css" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/App.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/App.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/api/apiFetch.js" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/api/apiFetch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/AuthCallback.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/AuthCallback.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/AuthContext.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/AuthContext.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/AuthContextInstance.js" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/AuthContextInstance.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/CreateFolder.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/CreateFolder.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/DeleteFileModal.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/DeleteFileModal.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/DeleteFolderModal.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/DeleteFolderModal.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/EachFolder.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/EachFolder.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/EditFolderModal.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/EditFolderModal.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/FolderList.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/FolderList.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/FolderList.test.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/FolderList.test.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/HomePage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/HomePage.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/Login.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/Login.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/PatternUpload.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/PatternUpload.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/ProtectedRoute.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/ProtectedRoute.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/components/useAuth.js" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/components/useAuth.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/config.js" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/index.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/main.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/main.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/src/setupTests.js" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/src/setupTests.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-frontend/vite.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-frontend/vite.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/AtelierApplication.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/AtelierApplication.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/GarmentType.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/GarmentType.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/Level.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/Level.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/PatternOrigin.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/PatternOrigin.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/config/SecurityConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/config/SecurityConfig.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/config/WebConfig.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/config/WebConfig.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/controller/FolderController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/controller/FolderController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/controller/PatternController.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/controller/PatternController.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/dto/FolderDto.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/dto/FolderDto.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/model/Folder.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/model/Folder.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/model/Pattern.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/model/Pattern.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/repository/FolderRepo.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/repository/FolderRepo.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/repository/PatternRepo.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/repository/PatternRepo.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/service/FolderMapper.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/service/FolderMapper.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/service/FolderService$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/service/FolderService$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/service/FolderService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/service/FolderService.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/service/PatternService.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/com/xinyue/atelier/service/PatternService.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -253,5 +151,16 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/atelier-backend" />
     </ignored-roots>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/atelier-backend/src/main/java/com/xinyue/atelier/AtelierApplication.java</url>
+          <line>9</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
