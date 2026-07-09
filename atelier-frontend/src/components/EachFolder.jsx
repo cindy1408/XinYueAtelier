@@ -47,16 +47,6 @@ function EachFolder() {
   const [editFolder, setEditFolder] = useState(null);
   const [fileToDelete, setFileToDelete] = useState(null);
 
-  const fetchFolder = useCallback(async () => {
-    try {
-      const res = await apiFetch(`/folder/${folderId}`);
-      const data = await res.json();
-      setFolder(data);
-    } catch (err) {
-      console.error("Failed to fetch folder", err);
-    }
-  }, [folderId]);
-
   const fetchChildren = useCallback(async () => {
     try {
       const res = await apiFetch(`/folder/${folderId}/children`);
@@ -77,6 +67,42 @@ function EachFolder() {
     }
   }, [folderId]);
 
+  useEffect(() => {
+    const loadFolder = async () => {
+      try {
+        const res = await apiFetch(`/folder/${folderId}`);
+        const data = await res.json();
+        setFolder(data);
+      } catch (err) {
+        console.error("Failed to fetch folder", err);
+      }
+    };
+
+    const loadChildren = async () => {
+      try {
+        const res = await apiFetch(`/folder/${folderId}/children`);
+        const data = await res.json();
+        setChildren(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Failed to fetch children:", err);
+      }
+    };
+
+    const loadFiles = async () => {
+      try {
+        const res = await apiFetch(`/patterns/${folderId}/files`);
+        const data = await res.json();
+        setFiles(data);
+      } catch (err) {
+        console.error("Failed to fetch files", err);
+      }
+    };
+
+    loadFolder();
+    loadChildren();
+    loadFiles();
+  }, [folderId]);
+
   const handleDeleteFile = async (fileId) => {
     try {
       const res = await apiFetch(`/patterns/${fileId}`, { method: 'DELETE' });
@@ -91,24 +117,19 @@ function EachFolder() {
   };
 
   const handleDeleteFolder = async (folder) => {
-  if (!window.confirm(`Delete "${folder.folderName}" and all its contents?`)) return;
-  try {
-    const res = await apiFetch(`/folder/${folder.id}`, { method: 'DELETE' });
-    if (res.ok) {
-      fetchChildren(); 
-    } else {
-      console.error("Failed to delete folder");
+    if (!window.confirm(`Delete "${folder.folderName}" and all its contents?`)) return;
+    try {
+      const res = await apiFetch(`/folder/${folder.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchChildren();
+      } else {
+        console.error("Failed to delete folder");
+      }
+    } catch (err) {
+      console.error("Error deleting folder:", err);
     }
-  } catch (err) {
-    console.error("Error deleting folder:", err);
-  }
-};
+  };
 
-  useEffect(() => {
-    fetchFolder();
-    fetchChildren();
-    fetchFiles();
-  }, [fetchFolder, fetchChildren, fetchFiles]);
 
   return (
     <div>

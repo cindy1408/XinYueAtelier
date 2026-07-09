@@ -1,4 +1,3 @@
-import { apiFetch } from '../api/apiFetch';
 import { API_URL } from '../config';
 
 export default function Login() {

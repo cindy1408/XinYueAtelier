@@ -13,6 +13,8 @@ export default function HomePage() {
 
   const { token } = useAuth();
 
+
+
   const fetchFolders = useCallback(async () => {
     try {
       const res = await apiFetch(`/folder`);
@@ -24,8 +26,18 @@ export default function HomePage() {
   }, [token]);
 
   useEffect(() => {
-    fetchFolders();
-  }, [fetchFolders]);
+    const loadFolders = async () => {
+      try {
+        const res = await apiFetch(`/folder`);
+        const data = await res.json();
+        setFolders(data);
+      } catch (err) {
+        console.error("Failed to fetch folders", err);
+      }
+    };
+
+    loadFolders();
+  }, [token]);
 
   const handleFolderCreated = () => {
     fetchFolders();
