@@ -4,15 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="65f681dd-d2f6-4f0a-937d-02c658701e4d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/atelier-backend/src/main/resources/db/migration/V1__create_folder.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/atelier-backend/src/main/resources/db/migration/V2__create_pattern.sql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/atelier-backend/src/main/resources/db/migration/V3__create_users.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/resources/application-dev.properties" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/resources/application-dev.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/atelier-backend/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/atelier-backend/src/main/resources/db/migration/V1__add_ref_to_folder.sql" beforeDir="false" />
-    </list>
+    <list default="true" id="65f681dd-d2f6-4f0a-937d-02c658701e4d" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
