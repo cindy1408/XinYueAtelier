@@ -6,9 +6,11 @@ import com.xinyue.atelier.PatternOrigin;
 import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.repository.FolderRepo;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -57,6 +59,7 @@ public class FolderService {
                 .map(folderMapper::toDto);
     }
 
+    @Transactional
     public FolderDto createFolder(
             Integer ref,
             String title,
@@ -84,7 +87,7 @@ public class FolderService {
 
         try {
             if (image != null && !image.isEmpty()) {
-                String imageUrl = uploadImageToS3(safeName(title), image);
+                String imageUrl = uploadImageToS3(folder, image);
                 folder.setImagePath(imageUrl);
             }
 
@@ -113,7 +116,7 @@ public class FolderService {
                 if (folder.getImagePath() != null) {
                     deleteImageFromS3(folder.getImagePath());
                 }
-                String imageUrl = uploadImageToS3(safeName(folderName), image);
+                String imageUrl = uploadImageToS3(folder, image);
                 folder.setImagePath(imageUrl);
             }
 
@@ -145,8 +148,9 @@ public class FolderService {
 
     // --- Private helpers ---
 
-    private String uploadImageToS3(String safeFolderName, MultipartFile image) throws IOException {
-        String key = "folders/" + safeFolderName + "/" + image.getOriginalFilename();
+    private String uploadImageToS3(Folder folder, MultipartFile image) throws IOException {
+        String extension = FilenameUtils.getExtension(image.getOriginalFilename());
+        String key = "folders/" + folder.getId() + "/image." + extension;
 
         s3Client.putObject(
                 PutObjectRequest.builder()
@@ -157,7 +161,7 @@ public class FolderService {
                 RequestBody.fromBytes(image.getBytes())
         );
 
-        return "https://" + bucketName + ".s3.eu-west-2.amazonaws.com/" + key;
+        return key;
     }
 
     private void deleteImageFromS3(String imageUrl) {
