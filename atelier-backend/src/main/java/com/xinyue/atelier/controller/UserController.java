@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -30,12 +31,13 @@ public class UserController {
         User user = userRepo.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return ResponseEntity.ok(Map.of(
-                "id",          user.getId(),
-                "email",       user.getEmail(),
-                "name",        user.getName(),
-                "role",        user.getRole(),
-                "createdAt",   user.getCreatedAt()
-        ));
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", user.getId());
+        response.put("email", user.getEmail());
+        response.put("name", user.getName());
+        response.put("role", user.getRole());
+        response.put("createdAt", user.getCreatedAt());
+
+        return ResponseEntity.ok(response);
     }
 }
