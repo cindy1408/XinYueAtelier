@@ -12,6 +12,8 @@ export function AuthProvider({ children }) {
             const timer = setTimeout(() => setLoading(false), 0);
             return () => clearTimeout(timer);
         }
+        
+        setLoading(true);  
         apiFetch(`/api/me`, {
             headers: { Authorization: `Bearer ${token}` }
         })

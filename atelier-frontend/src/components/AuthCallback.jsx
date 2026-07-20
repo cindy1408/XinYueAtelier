@@ -4,7 +4,7 @@ import { useAuth } from "../components/useAuth";
 import {useEffect} from "react";
 
 export default function AuthCallback() {
-    const { login } = useAuth();
+    const { login, token } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -12,11 +12,16 @@ export default function AuthCallback() {
         const tokenParam = params.get("token");
         if (tokenParam) {
             login(tokenParam);
-            navigate("/", { replace: true });
         } else {
             navigate("/login", { replace: true });
         }
-    }, []); 
+    }, []);
+
+    useEffect(() => {
+        if (token) {
+            navigate("/", { replace: true });
+        }
+    }, [token]);
 
     return <p>Signing you in...</p>;
 }
