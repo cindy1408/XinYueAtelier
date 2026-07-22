@@ -40,7 +40,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // Include role in the JWT so frontend can use it
         String token = jwtUtil.generateToken(user.getEmail(), user.getName());
 
+        // TODO: set the JWT as an httpOnly cookie
         getRedirectStrategy().sendRedirect(request, response,
-                frontendUrl + "/auth/callback?token=" + token);
+                frontendUrl + "/auth/callback#token=" + token);
     }
 }
