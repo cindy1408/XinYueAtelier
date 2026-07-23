@@ -2,9 +2,9 @@ package com.xinyue.atelier.config;
 
 import com.xinyue.atelier.security.OAuth2SuccessHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,6 +18,9 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     @Autowired
     private OAuth2SuccessHandler oAuth2SuccessHandler;
@@ -36,6 +39,8 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth ->
                         oauth.successHandler(oAuth2SuccessHandler)
+                                .failureHandler((request, response, exception) ->
+                                        response.sendRedirect(frontendUrl + "/login?error=true"))
                 ).sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.IF_REQUIRED
