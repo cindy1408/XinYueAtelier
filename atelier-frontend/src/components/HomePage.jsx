@@ -11,9 +11,6 @@ export default function HomePage() {
   const [editFolder, setEditFolder] = useState(null);
   const [activeTab, setActiveTab] = useState("patterns"); // 👈 new
 
-  const { token } = useAuth();
-
-
 
   const fetchFolders = useCallback(async () => {
     try {
@@ -23,21 +20,7 @@ export default function HomePage() {
     } catch (err) {
       console.error("Failed to fetch folders", err);
     }
-  }, [token]);
-
-  useEffect(() => {
-    const loadFolders = async () => {
-      try {
-        const res = await apiFetch(`/folder`);
-        const data = await res.json();
-        setFolders(data);
-      } catch (err) {
-        console.error("Failed to fetch folders", err);
-      }
-    };
-
-    loadFolders();
-  }, [token]);
+  }, []);
 
   const handleFolderCreated = () => {
     fetchFolders();

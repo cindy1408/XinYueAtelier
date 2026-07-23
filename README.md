@@ -59,7 +59,7 @@ JWT_SECRET=your_jwt_secret
 # Google OAuth
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_REDIRECT_URI=http://localhost:8080/login/oauth2/code/google
+GOOGLE_REDIRECT_URI=http://localhost:8080/oauth2/callback/google
 APP_FRONTEND_URL=http://localhost:5173
 
 # AWS S3
@@ -116,7 +116,7 @@ docker-compose up --build
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/me` | Get the current authenticated user (requires `Authorization: Bearer <token>`) |
+| `GET` | `/api/user` | Get the current authenticated user (requires `Authorization: Bearer <token>`) |
 
 ---
 

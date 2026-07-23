@@ -3,6 +3,7 @@ package com.xinyue.atelier.service;
 import com.xinyue.atelier.model.User;
 import com.xinyue.atelier.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -13,8 +14,14 @@ public class UserService {
     @Autowired
     private UserRepo userRepository;
 
+    public User getCurrentUser(OAuth2User oauthUser) {
+        String email = oauthUser.getAttribute("email");
+
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
     public User findOrCreateUser(String googleId, String email, String name) {
-        // Try to find by googleId first (most reliable)
         return userRepository.findByGoogleId(googleId)
                 .orElseGet(() -> {
                     // Check if they signed up with same email before

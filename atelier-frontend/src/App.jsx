@@ -3,7 +3,6 @@ import { AuthProvider } from "./components/AuthContext";
 import HomePage from "./components/HomePage";
 import EachFolder from "./components/EachFolder";
 import Login from "./components/Login";
-import AuthCallback from "./components/AuthCallback";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -12,8 +11,7 @@ function App() {
       <BrowserRouter>
              <AuthProvider>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/login" element={<Login />} />       
           <Route path="/" element={
             <ProtectedRoute>
               <HomePage />
