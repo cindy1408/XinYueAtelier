@@ -2,22 +2,23 @@ import { useEffect, useState, useCallback } from "react";
 import FolderList from "./FolderList";
 import CreateFolder from "./CreateFolder";
 import EditFolderModal from "./EditFolderModal";
-import { useAuth } from "./useAuth";
 import { apiFetch } from '../api/apiFetch';
 
 export default function HomePage() {
   const [folders, setFolders] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editFolder, setEditFolder] = useState(null);
-  const [activeTab, setActiveTab] = useState("patterns"); // 👈 new
+  const [activeTab, setActiveTab] = useState("patterns");
 
-  const fetchFolders = useCallback(async () => {
+  const fetchFolders = useCallback(async (signal) => {
     try {
-      const res = await apiFetch(`/folder`);
+      const res = await apiFetch(`/folder`, { signal });
       const data = await res.json();
       setFolders(data);
     } catch (err) {
-      console.error("Failed to fetch folders", err);
+      if (err.name !== "AbortError") {
+        console.error("Failed to fetch folders", err);
+      }
     }
   }, []);
 
@@ -27,9 +28,11 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    fetchFolders();
+    const controller = new AbortController();
+    // eslint-disable-next-line
+    fetchFolders(controller.signal);
+    return () => controller.abort();
   }, [fetchFolders]);
-
 
   const handleFolderUpdated = (updatedFolder) => {
     setFolders((prev) =>

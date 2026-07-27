@@ -15,7 +15,7 @@ public class FolderMapper {
     private final S3Presigner presigner;
     private final String bucketName;
 
-    public FolderMapper(S3Presigner presigner, @Value("${s3.bucket}") String bucketName) {
+    public FolderMapper(S3Presigner presigner, @Value("${aws.s3.bucket}") String bucketName) {
         this.presigner = presigner;
         this.bucketName = bucketName;
     }

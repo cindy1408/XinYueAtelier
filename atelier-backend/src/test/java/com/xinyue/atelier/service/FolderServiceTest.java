@@ -3,14 +3,12 @@ package com.xinyue.atelier.service;
 import com.xinyue.atelier.GarmentType;
 import com.xinyue.atelier.Level;
 import com.xinyue.atelier.PatternOrigin;
-import com.xinyue.atelier.config.TestConfig;
 import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.repository.FolderRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.web.server.ResponseStatusException;
@@ -55,6 +53,7 @@ class FolderServiceTest {
 
         FolderDto dto = new FolderDto(
                 id,
+                1,
                 "Folder",
                 null,
                 PatternOrigin.DRAFTED,
@@ -110,6 +109,7 @@ class FolderServiceTest {
 
         FolderDto dto = new FolderDto(
                 savedFolder.getId(),
+                savedFolder.getRef(),
                 savedFolder.getFolderName(),
                 null,
                 PatternOrigin.DRAFTED,
@@ -131,7 +131,7 @@ class FolderServiceTest {
 
         // Verify folder was saved
         ArgumentCaptor<Folder> captor = ArgumentCaptor.forClass(Folder.class);
-        verify(folderRepo, times(1)).save(captor.capture());
+        verify(folderRepo, times(2)).save(captor.capture());
         assertEquals(title, captor.getValue().getFolderName());
     }
 

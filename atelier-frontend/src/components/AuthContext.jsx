@@ -1,6 +1,5 @@
 import {useState, useEffect } from "react";
 import { AuthContext } from "./AuthContextInstance";
-import { apiFetch } from '../api/apiFetch';
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
