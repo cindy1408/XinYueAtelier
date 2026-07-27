@@ -68,10 +68,3 @@ jobs:
       - name: Build
         run: npm run build
         working-directory: atelier-frontend
-
-      - name: Upload frontend coverage
-        uses: codecov/codecov-action@v5
-        with:
-          files: atelier-frontend/coverage/lcov.info
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
