@@ -9,6 +9,7 @@ import java.util.UUID;
 
 public record FolderDto(
         UUID id,
+        Integer ref,
         String folderName,
         String imagePath,
         PatternOrigin origin,

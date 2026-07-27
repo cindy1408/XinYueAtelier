@@ -11,10 +11,6 @@ export default function HomePage() {
   const [editFolder, setEditFolder] = useState(null);
   const [activeTab, setActiveTab] = useState("patterns"); // 👈 new
 
-  useEffect(() => {
-    fetchFolders();
-  }, [fetchFolders]);
-  
   const fetchFolders = useCallback(async () => {
     try {
       const res = await apiFetch(`/folder`);
@@ -29,6 +25,11 @@ export default function HomePage() {
     fetchFolders();
     setShowForm(false);
   };
+
+  useEffect(() => {
+    fetchFolders();
+  }, [fetchFolders]);
+
 
   const handleFolderUpdated = (updatedFolder) => {
     setFolders((prev) =>
