@@ -85,13 +85,16 @@ public class FolderService {
         folder.setOrigin(parseEnum(PatternOrigin.class, origin));
         folder.setLevel(parseEnum(Level.class, level));
 
+        folder = folderRepo.save(folder);
+
         try {
             if (image != null && !image.isEmpty()) {
                 String imageUrl = uploadImageToS3(folder, image);
                 folder.setImagePath(imageUrl);
+                folder = folderRepo.save(folder);
             }
 
-            return folderMapper.toDto(folderRepo.save(folder));
+            return folderMapper.toDto(folder);
 
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create folder", e);

@@ -50,6 +50,10 @@ function EachFolder() {
   const fetchChildren = useCallback(async () => {
     try {
       const res = await apiFetch(`/folder/${folderId}/children`);
+      if (!res.ok) {
+        console.error("Failed to fetch children:", res.status, await res.text());
+        return;
+      }
       const data = await res.json();
       setChildren(Array.isArray(data) ? data : []);
     } catch (err) {
