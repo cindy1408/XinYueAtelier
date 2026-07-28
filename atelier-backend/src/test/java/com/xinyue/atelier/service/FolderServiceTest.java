@@ -3,96 +3,92 @@ package com.xinyue.atelier.service;
 import com.xinyue.atelier.GarmentType;
 import com.xinyue.atelier.Level;
 import com.xinyue.atelier.PatternOrigin;
-import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.dto.FolderDto;
+import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.repository.FolderRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.bean.override.convention.TestBean;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.server.ResponseStatusException;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.core.sync.RequestBody;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
 class FolderServiceTest {
 
-    private FolderService folderService;
-    private FolderRepo folderRepo;
-    private FolderMapper folderMapper;
-    @TestBean
+    @Mock
     private S3Client s3Client;
+
+    @Mock
+    private FolderRepo folderRepo;
+
+    @Mock
+    private FolderMapper folderMapper;
+
+    private FolderService folderService;
 
     @BeforeEach
     void setUp() {
-        folderRepo = mock(FolderRepo.class);
-        folderMapper = mock(FolderMapper.class);
-        s3Client = mock(S3Client.class);
-
         folderService = new FolderService(s3Client, folderRepo, folderMapper);
+        ReflectionTestUtils.setField(folderService, "bucketName", "test-bucket");
     }
 
+    // ---------- listRootFolders ----------
+
     @Test
-    void getFolderById_happyPath() {
+    void listRootFolders_returnsMappedDtosForFoldersWithNoParent() {
+        Folder folder1 = new Folder();
+        Folder folder2 = new Folder();
 
-        UUID id = UUID.randomUUID();
-
-        Folder folder = new Folder();
-        folder.setRef(1);
-        folder.setId(id);
-        folder.setFolderName("Folder");
-        folder.setOrigin(PatternOrigin.DRAFTED);
-        folder.setLevel(Level.BEGINNER);
-        folder.setGarmentType(GarmentType.COURSE);
-
-
-        FolderDto dto = new FolderDto(
-                id,
-                1,
-                "Folder",
-                null,
-                PatternOrigin.DRAFTED,
-                Level.BEGINNER,
-                GarmentType.COURSE,
-                java.util.Collections.emptyList()
+        FolderDto dto1 = new FolderDto(
+                UUID.randomUUID(), 1, "Folder One", null,
+                PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList()
+        );
+        FolderDto dto2 = new FolderDto(
+                UUID.randomUUID(), 2, "Folder Two", null,
+                PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList()
         );
 
-        // Mock repository and mapper
-        when(folderRepo.findById(id)).thenReturn(Optional.of(folder));
-        when(folderMapper.toDto(folder)).thenReturn(dto);
+        when(folderRepo.findByParentFolderIsNull()).thenReturn(List.of(folder1, folder2));
+        when(folderMapper.toDto(folder1)).thenReturn(dto1);
+        when(folderMapper.toDto(folder2)).thenReturn(dto2);
 
-        // Act
-        Optional<FolderDto> result = folderService.getFolderById(id);
+        List<FolderDto> result = folderService.listRootFolders();
 
-        // Assert
-        assertTrue(result.isPresent());
-        assertEquals(dto, result.get());
+        assertThat(result).containsExactly(dto1, dto2);
+        verify(folderRepo).findByParentFolderIsNull();
     }
 
     @Test
-    void getFolderById_notFound_returnsEmpty() {
-        // Arrange
-        UUID id = UUID.randomUUID();
+    void listRootFolders_returnsEmptyListWhenNoRootFolders() {
+        when(folderRepo.findByParentFolderIsNull()).thenReturn(List.of());
 
-        // Mock repository to return empty
-        when(folderRepo.findById(id)).thenReturn(Optional.empty());
+        List<FolderDto> result = folderService.listRootFolders();
 
-        // Act
-        Optional<FolderDto> result = folderService.getFolderById(id);
-
-        // Assert
-        assertTrue(result.isEmpty());
+        assertThat(result).isEmpty();
     }
 
+    // ---------- createFolder ----------
 
     @Test
-    void createFolder_withValidData_createsFolder() throws Exception {
-        // Arrange
+    void createFolder_withValidData_createsFolder() {
         Integer ref = 1;
         String title = "My Folder";
         String garmentType = "COURSE";
@@ -115,40 +111,188 @@ class FolderServiceTest {
                 PatternOrigin.DRAFTED,
                 Level.BEGINNER,
                 GarmentType.COURSE,
-                java.util.Collections.emptyList()
+                Collections.emptyList()
         );
 
-        // Mock repository and mapper
         when(folderRepo.save(any(Folder.class))).thenReturn(savedFolder);
         when(folderMapper.toDto(savedFolder)).thenReturn(dto);
 
-        // Act
         FolderDto result = folderService.createFolder(ref, title, garmentType, origin, level, image, null);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(title, result.folderName());
+        assertThat(result).isNotNull();
+        assertThat(result.folderName()).isEqualTo(title);
 
-        // Verify folder was saved
         ArgumentCaptor<Folder> captor = ArgumentCaptor.forClass(Folder.class);
         verify(folderRepo, times(2)).save(captor.capture());
-        assertEquals(title, captor.getValue().getFolderName());
+        assertThat(captor.getValue().getFolderName()).isEqualTo(title);
+    }
+
+    @Test
+    void createFolder_createsRootFolderWithoutImage() {
+        Folder savedFolder = new Folder();
+        savedFolder.setId(UUID.randomUUID());
+
+        FolderDto expectedDto = new FolderDto(
+                savedFolder.getId(), 1, "My Folder", null,
+                PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList()
+        );
+
+        when(folderRepo.save(any(Folder.class))).thenReturn(savedFolder);
+        when(folderMapper.toDto(savedFolder)).thenReturn(expectedDto);
+
+        FolderDto result = folderService.createFolder(
+                1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", null, null
+        );
+
+        assertThat(result).isEqualTo(expectedDto);
+        verify(folderRepo, never()).findById(any());
+        verify(folderRepo, times(1)).save(any(Folder.class));
+        verifyNoInteractions(s3Client);
+    }
+
+    @Test
+    void createFolder_setsParentFolderWhenParentIdProvided() {
+        UUID parentId = UUID.randomUUID();
+        Folder parentFolder = new Folder();
+        Folder savedFolder = new Folder();
+        savedFolder.setId(UUID.randomUUID());
+
+        FolderDto dto = new FolderDto(
+                savedFolder.getId(), 1, "Child Folder", null,
+                PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList()
+        );
+
+        when(folderRepo.findById(parentId)).thenReturn(Optional.of(parentFolder));
+        when(folderRepo.save(any(Folder.class))).thenReturn(savedFolder);
+        when(folderMapper.toDto(savedFolder)).thenReturn(dto);
+
+        folderService.createFolder(
+                1, "Child Folder", "COURSE", "DRAFTED", "BEGINNER", null, parentId
+        );
+
+        ArgumentCaptor<Folder> folderCaptor = ArgumentCaptor.forClass(Folder.class);
+        verify(folderRepo).save(folderCaptor.capture());
+        assertThat(folderCaptor.getValue().getParentFolder()).isEqualTo(parentFolder);
     }
 
     @Test
     void createFolder_withNonExistentParent_throwsException() {
-        // Arrange
         UUID parentId = UUID.randomUUID();
         when(folderRepo.findById(parentId)).thenReturn(Optional.empty());
 
-        // Act & Assert
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () ->
-                folderService.createFolder(
-                        1, "Title", "COURSE", "DRAFTED", "BEGINNER", null, parentId
-                )
+        ResponseStatusException exception = (ResponseStatusException) assertThatThrownBy(() ->
+                folderService.createFolder(1, "Title", "COURSE", "DRAFTED", "BEGINNER", null, parentId)
+        )
+                .isInstanceOf(ResponseStatusException.class)
+                .actual();
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(exception.getReason()).contains("Parent folder not found");
+        verify(folderRepo, never()).save(any());
+    }
+
+    @Test
+    void createFolder_throwsBadRequestForInvalidGarmentType() {
+        assertThatThrownBy(() -> folderService.createFolder(
+                1, "My Folder", "NOT_A_REAL_TYPE", "DRAFTED", "BEGINNER", null, null
+        ))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Invalid value for GarmentType");
+    }
+
+    @Test
+    void createFolder_throwsBadRequestForInvalidOrigin() {
+        assertThatThrownBy(() -> folderService.createFolder(
+                1, "My Folder", "COURSE", "NOT_A_REAL_ORIGIN", "BEGINNER", null, null
+        ))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Invalid value for PatternOrigin");
+    }
+
+    @Test
+    void createFolder_throwsBadRequestForInvalidLevel() {
+        assertThatThrownBy(() -> folderService.createFolder(
+                1, "My Folder", "COURSE", "DRAFTED", "NOT_A_REAL_LEVEL", null, null
+        ))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Invalid value for Level");
+    }
+
+    @Test
+    void createFolder_isCaseInsensitiveForEnumValues() {
+        Folder savedFolder = new Folder();
+        savedFolder.setId(UUID.randomUUID());
+        FolderDto dto = new FolderDto(
+                savedFolder.getId(), 1, "My Folder", null,
+                PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList()
         );
 
-        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-        assertTrue(exception.getReason().contains("Parent folder not found"));
+        when(folderRepo.save(any(Folder.class))).thenReturn(savedFolder);
+        when(folderMapper.toDto(savedFolder)).thenReturn(dto);
+
+        folderService.createFolder(
+                1, "My Folder", "course", "drafted", "beginner", null, null
+        );
+
+        verify(folderRepo).save(any(Folder.class));
+    }
+
+    @Test
+    void createFolder_uploadsImageToS3AndSetsImagePath() {
+        Folder savedFolderBeforeImage = new Folder();
+        savedFolderBeforeImage.setId(UUID.randomUUID());
+        Folder savedFolderAfterImage = new Folder();
+        savedFolderAfterImage.setId(savedFolderBeforeImage.getId());
+
+        MockMultipartFile image = new MockMultipartFile(
+                "image", "photo.png", "image/png", "fake-image-bytes".getBytes()
+        );
+
+        FolderDto dto = new FolderDto(
+                savedFolderAfterImage.getId(), 1, "My Folder", "folders/x/image.png",
+                PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList()
+        );
+
+        when(folderRepo.save(any(Folder.class)))
+                .thenReturn(savedFolderBeforeImage)
+                .thenReturn(savedFolderAfterImage);
+        when(folderMapper.toDto(savedFolderAfterImage)).thenReturn(dto);
+
+        folderService.createFolder(
+                1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", image, null
+        );
+
+        ArgumentCaptor<PutObjectRequest> requestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+        verify(s3Client).putObject(requestCaptor.capture(), any(RequestBody.class));
+
+        assertThat(requestCaptor.getValue().bucket()).isEqualTo("test-bucket");
+        assertThat(requestCaptor.getValue().key()).contains("folders/").endsWith(".png");
+        assertThat(requestCaptor.getValue().contentType()).isEqualTo("image/png");
+
+        verify(folderRepo, times(2)).save(any(Folder.class));
+    }
+
+    @Test
+    void createFolder_doesNotCallS3WhenImageIsEmpty() {
+        Folder savedFolder = new Folder();
+        savedFolder.setId(UUID.randomUUID());
+        FolderDto dto = new FolderDto(
+                savedFolder.getId(), 1, "My Folder", null,
+                PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList()
+        );
+
+        MockMultipartFile emptyImage = new MockMultipartFile(
+                "image", "empty.png", "image/png", new byte[0]
+        );
+
+        when(folderRepo.save(any(Folder.class))).thenReturn(savedFolder);
+        when(folderMapper.toDto(savedFolder)).thenReturn(dto);
+
+        folderService.createFolder(
+                1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", emptyImage, null
+        );
+
+        verifyNoInteractions(s3Client);
+        verify(folderRepo, times(1)).save(any(Folder.class));
     }
 }

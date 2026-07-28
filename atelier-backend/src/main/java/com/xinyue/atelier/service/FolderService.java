@@ -47,17 +47,17 @@ public class FolderService {
                 .toList();
     }
 
-    public List<FolderDto> getFolderChildrenById(UUID parentId) {
-        return folderRepo.findByParentFolderId(parentId)
-                .stream()
-                .map(folderMapper::toDto)
-                .toList();
-    }
+//    public List<FolderDto> getFolderChildrenById(UUID parentId) {
+//        return folderRepo.findByParentFolderId(parentId)
+//                .stream()
+//                .map(folderMapper::toDto)
+//                .toList();
+//    }
 
-    public Optional<FolderDto> getFolderById(UUID id) {
-        return folderRepo.findById(id)
-                .map(folderMapper::toDto);
-    }
+//    public Optional<FolderDto> getFolderById(UUID id) {
+//        return folderRepo.findById(id)
+//                .map(folderMapper::toDto);
+//    }
 
     @Transactional
     public FolderDto createFolder(
@@ -101,53 +101,53 @@ public class FolderService {
         }
     }
 
-    public FolderDto updateFolder(
-            UUID id,
-            Integer ref,
-            String folderName,
-            String garmentType,
-            String origin,
-            String level,
-            MultipartFile image
-    ) {
-        Folder folder = folderRepo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
+//    public FolderDto updateFolder(
+//            UUID id,
+//            Integer ref,
+//            String folderName,
+//            String garmentType,
+//            String origin,
+//            String level,
+//            MultipartFile image
+//    ) {
+//        Folder folder = folderRepo.findById(id)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
+//
+//        try {
+//            if (image != null && !image.isEmpty()) {
+//                // Delete old image from S3 if there is one
+//                if (folder.getImagePath() != null) {
+//                    deleteImageFromS3(folder.getImagePath());
+//                }
+//                String imageUrl = uploadImageToS3(folder, image);
+//                folder.setImagePath(imageUrl);
+//            }
+//
+//            folder.setRef(ref);
+//            folder.setFolderName(folderName);
+//            folder.setGarmentType(parseEnum(GarmentType.class, garmentType));
+//            folder.setOrigin(parseEnum(PatternOrigin.class, origin));
+//            folder.setLevel(parseEnum(Level.class, level));
+//
+//            return folderMapper.toDto(folderRepo.save(folder));
+//
+//        } catch (IOException e) {
+//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update folder", e);
+//        }
+//    }
 
-        try {
-            if (image != null && !image.isEmpty()) {
-                // Delete old image from S3 if there is one
-                if (folder.getImagePath() != null) {
-                    deleteImageFromS3(folder.getImagePath());
-                }
-                String imageUrl = uploadImageToS3(folder, image);
-                folder.setImagePath(imageUrl);
-            }
-
-            folder.setRef(ref);
-            folder.setFolderName(folderName);
-            folder.setGarmentType(parseEnum(GarmentType.class, garmentType));
-            folder.setOrigin(parseEnum(PatternOrigin.class, origin));
-            folder.setLevel(parseEnum(Level.class, level));
-
-            return folderMapper.toDto(folderRepo.save(folder));
-
-        } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update folder", e);
-        }
-    }
-
-    public void deleteFolder(UUID id) {
-        Folder folder = folderRepo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
-
-        // Delete image from S3 if present
-        if (folder.getImagePath() != null) {
-            deleteImageFromS3(folder.getImagePath());
-        }
-
-        // DB delete cascades to subfolders and patterns via CascadeType.ALL
-        folderRepo.delete(folder);
-    }
+//    public void deleteFolder(UUID id) {
+//        Folder folder = folderRepo.findById(id)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
+//
+//        // Delete image from S3 if present
+//        if (folder.getImagePath() != null) {
+//            deleteImageFromS3(folder.getImagePath());
+//        }
+//
+//        // DB delete cascades to subfolders and patterns via CascadeType.ALL
+//        folderRepo.delete(folder);
+//    }
 
     // --- Private helpers ---
 
@@ -167,26 +167,26 @@ public class FolderService {
         return key;
     }
 
-    private void deleteImageFromS3(String imageUrl) {
-        // Extract the S3 key from the full URL
-        String prefix = "https://" + bucketName + ".s3.eu-west-2.amazonaws.com/";
-        if (imageUrl.startsWith(prefix)) {
-            String key = imageUrl.substring(prefix.length());
-            s3Client.deleteObject(
-                    DeleteObjectRequest.builder()
-                            .bucket(bucketName)
-                            .key(key)
-                            .build()
-            );
-        }
-    }
+//    private void deleteImageFromS3(String imageUrl) {
+//        // Extract the S3 key from the full URL
+//        String prefix = "https://" + bucketName + ".s3.eu-west-2.amazonaws.com/";
+//        if (imageUrl.startsWith(prefix)) {
+//            String key = imageUrl.substring(prefix.length());
+//            s3Client.deleteObject(
+//                    DeleteObjectRequest.builder()
+//                            .bucket(bucketName)
+//                            .key(key)
+//                            .build()
+//            );
+//        }
+//    }
 
-    private String safeName(String input) {
-        return input
-                .trim()
-                .replaceAll("\\s+", "-")
-                .replaceAll("[^a-zA-Z0-9-_]", "");
-    }
+//    private String safeName(String input) {
+//        return input
+//                .trim()
+//                .replaceAll("\\s+", "-")
+//                .replaceAll("[^a-zA-Z0-9-_]", "");
+//    }
 
     private <E extends Enum<E>> E parseEnum(Class<E> enumType, String value) {
         try {

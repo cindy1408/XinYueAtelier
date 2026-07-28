@@ -26,15 +26,15 @@ public class FolderController {
         return folderService.listRootFolders();
     }
 
-    @GetMapping("/{parentId}/children")
-    public List<FolderDto> getFolderChildren(@PathVariable UUID parentId) {
-        return folderService.getFolderChildrenById(parentId);
-    }
+//    @GetMapping("/{parentId}/children")
+//    public List<FolderDto> getFolderChildren(@PathVariable UUID parentId) {
+//        return folderService.getFolderChildrenById(parentId);
+//    }
 
-    @GetMapping("/{folderId}")
-    public Optional<FolderDto> getFolderById(@PathVariable UUID folderId) {
-        return folderService.getFolderById(folderId);
-    }
+//    @GetMapping("/{folderId}")
+//    public Optional<FolderDto> getFolderById(@PathVariable UUID folderId) {
+//        return folderService.getFolderById(folderId);
+//    }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FolderDto> createRootFolder(
@@ -52,41 +52,41 @@ public class FolderController {
         );
     }
 
-    @PostMapping(
-            value = "/{parentId}",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<FolderDto> createChildFolder(
-            @PathVariable UUID parentId,
-            @RequestParam Integer ref,
-            @RequestParam String title,
-            @RequestParam String garmentType,
-            @RequestParam String origin,
-            @RequestParam String level,
-            @RequestParam MultipartFile image
-    ) {
-        return ResponseEntity.ok(
-                folderService.createFolder(
-                        ref, title, garmentType, origin, level, image, parentId
-                )
-        );
-    }
+//    @PostMapping(
+//            value = "/{parentId}",
+//            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+//    )
+//    public ResponseEntity<FolderDto> createChildFolder(
+//            @PathVariable UUID parentId,
+//            @RequestParam Integer ref,
+//            @RequestParam String title,
+//            @RequestParam String garmentType,
+//            @RequestParam String origin,
+//            @RequestParam String level,
+//            @RequestParam MultipartFile image
+//    ) {
+//        return ResponseEntity.ok(
+//                folderService.createFolder(
+//                        ref, title, garmentType, origin, level, image, parentId
+//                )
+//        );
+//    }
 
-    @PutMapping("/{id}")
-    public FolderDto updateFolder(
-            @PathVariable UUID id,
-            @RequestParam Integer ref,
-            @RequestParam String folderName,
-            @RequestParam String garmentType,
-            @RequestParam String origin,
-            @RequestParam String level,
-            @RequestParam(required = false) MultipartFile image
-    ) {
-        return folderService.updateFolder(id, ref, folderName, garmentType, origin, level, image);
-    }
-
-    @DeleteMapping("/{id}")
-    public void deleteFolder(@PathVariable UUID id) throws IOException {
-        folderService.deleteFolder(id);
-    }
+//    @PutMapping("/{id}")
+//    public FolderDto updateFolder(
+//            @PathVariable UUID id,
+//            @RequestParam Integer ref,
+//            @RequestParam String folderName,
+//            @RequestParam String garmentType,
+//            @RequestParam String origin,
+//            @RequestParam String level,
+//            @RequestParam(required = false) MultipartFile image
+//    ) {
+//        return folderService.updateFolder(id, ref, folderName, garmentType, origin, level, image);
+//    }
+//
+//    @DeleteMapping("/{id}")
+//    public void deleteFolder(@PathVariable UUID id) throws IOException {
+//        folderService.deleteFolder(id);
+//    }
 }
