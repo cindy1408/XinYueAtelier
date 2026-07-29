@@ -105,7 +105,8 @@ public class PatternService {
         return input
                 .trim()
                 .replaceAll("\\s+", "-")
-                .replaceAll("[^a-zA-Z0-9-_]", "");
+                .replaceAll("[^a-zA-Z0-9-_]", "")
+                .replaceAll("-{2,}", "-");
     }
 
     public String generatePresignedUrl(String pdfUrl) {
