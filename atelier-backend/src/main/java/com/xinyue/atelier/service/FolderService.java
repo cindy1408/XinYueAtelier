@@ -136,18 +136,18 @@ public class FolderService {
 //        }
 //    }
 
-//    public void deleteFolder(UUID id) {
-//        Folder folder = folderRepo.findById(id)
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
-//
-//        // Delete image from S3 if present
-//        if (folder.getImagePath() != null) {
-//            deleteImageFromS3(folder.getImagePath());
-//        }
-//
-//        // DB delete cascades to subfolders and patterns via CascadeType.ALL
-//        folderRepo.delete(folder);
-//    }
+    public void deleteFolder(UUID id) {
+        Folder folder = folderRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
+
+        // Delete image from S3 if present
+        if (folder.getImagePath() != null) {
+            deleteImageFromS3(folder.getImagePath());
+        }
+
+        // DB delete cascades to subfolders and patterns via CascadeType.ALL
+        folderRepo.delete(folder);
+    }
 
     // --- Private helpers ---
 
@@ -167,19 +167,14 @@ public class FolderService {
         return key;
     }
 
-//    private void deleteImageFromS3(String imageUrl) {
-//        // Extract the S3 key from the full URL
-//        String prefix = "https://" + bucketName + ".s3.eu-west-2.amazonaws.com/";
-//        if (imageUrl.startsWith(prefix)) {
-//            String key = imageUrl.substring(prefix.length());
-//            s3Client.deleteObject(
-//                    DeleteObjectRequest.builder()
-//                            .bucket(bucketName)
-//                            .key(key)
-//                            .build()
-//            );
-//        }
-//    }
+    private void deleteImageFromS3(String imageKey) {
+        s3Client.deleteObject(
+                DeleteObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(imageKey)
+                        .build()
+        );
+    }
 
 //    private String safeName(String input) {
 //        return input

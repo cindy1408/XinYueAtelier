@@ -17,6 +17,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.core.sync.RequestBody;
 
@@ -294,5 +295,36 @@ class FolderServiceTest {
 
         verifyNoInteractions(s3Client);
         verify(folderRepo, times(1)).save(any(Folder.class));
+    }
+
+    @Test
+    void deleteFolder_deletesImageFromS3WhenImagePathExists() {
+        UUID folderId = UUID.randomUUID();
+        Folder folder = new Folder();
+        folder.setImagePath("folders/" + folderId + "/image.png");
+
+        when(folderRepo.findById(folderId)).thenReturn(Optional.of(folder));
+
+        folderService.deleteFolder(folderId);
+
+        ArgumentCaptor<DeleteObjectRequest> captor = ArgumentCaptor.forClass(DeleteObjectRequest.class);
+        verify(s3Client).deleteObject(captor.capture());
+        assertThat(captor.getValue().key()).isEqualTo("folders/" + folderId + "/image.png");
+        assertThat(captor.getValue().bucket()).isEqualTo("test-bucket");
+
+        verify(folderRepo).delete(folder);
+    }
+
+    @Test
+    void deleteFolder_throwsNotFoundWhenFolderDoesNotExist() {
+        UUID folderId = UUID.randomUUID();
+        when(folderRepo.findById(folderId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> folderService.deleteFolder(folderId))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Folder not found");
+
+        verifyNoInteractions(s3Client);
+        verify(folderRepo, never()).delete(any());
     }
 }

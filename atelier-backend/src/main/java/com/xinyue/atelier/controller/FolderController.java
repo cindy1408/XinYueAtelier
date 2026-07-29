@@ -85,8 +85,8 @@ public class FolderController {
 //        return folderService.updateFolder(id, ref, folderName, garmentType, origin, level, image);
 //    }
 //
-//    @DeleteMapping("/{id}")
-//    public void deleteFolder(@PathVariable UUID id) throws IOException {
-//        folderService.deleteFolder(id);
-//    }
+    @DeleteMapping("/{id}")
+    public void deleteFolder(@PathVariable UUID id) throws IOException {
+        folderService.deleteFolder(id);
+    }
 }
