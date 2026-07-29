@@ -1,19 +1,19 @@
-FROM eclipse-temurin:25-jdk AS build
-
+# Stage 1: build the frontend
+FROM node:20-alpine AS build
 WORKDIR /app
 
-COPY pom.xml .
-COPY mvnw .
-COPY .mvn .mvn
-COPY src ./src
+COPY package*.json ./
+RUN npm ci
 
-RUN chmod +x mvnw && ./mvnw clean package -DskipTests
+COPY . .
 
-FROM eclipse-temurin:25-jre
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
 
-WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+RUN npm run build
 
-EXPOSE 8080
-
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Stage 2: serve with nginx
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+ENTRYPOINT ["nginx", "-g", "daemon off;"]

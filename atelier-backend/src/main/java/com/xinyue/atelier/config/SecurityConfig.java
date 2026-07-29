@@ -1,6 +1,7 @@
 package com.xinyue.atelier.config;
 
 import com.xinyue.atelier.security.OAuth2SuccessHandler;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -41,6 +42,12 @@ public class SecurityConfig {
                         oauth.successHandler(oAuth2SuccessHandler)
                                 .failureHandler((request, response, exception) ->
                                         response.sendRedirect(frontendUrl + "/login?error=true"))
+                ).logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessHandler((request, response, authentication) ->
+                                response.setStatus(HttpServletResponse.SC_OK))
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                 ).sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.IF_REQUIRED

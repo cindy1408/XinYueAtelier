@@ -112,11 +112,6 @@ docker-compose up --build
 | `GET` | `/patterns/download/{patternId}` | Redirect to S3 download URL |
 | `GET` | `/patterns/preview/{patternId}` | Get a presigned S3 preview URL |
 
-### Auth / User — `/api`
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/user` | Get the current authenticated user (requires `Authorization: Bearer <token>`) |
 
 ---
 
