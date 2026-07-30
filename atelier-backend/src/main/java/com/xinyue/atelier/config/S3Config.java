@@ -3,6 +3,7 @@ package com.xinyue.atelier.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -37,7 +38,7 @@ public class S3Config {
                 ))
                 .forcePathStyle(true);
 
-        if (!s3Endpoint.isBlank()) {
+        if (StringUtils.hasText(s3Endpoint)) {
             builder.endpointOverride(URI.create(s3Endpoint));
         }
 
@@ -55,7 +56,7 @@ public class S3Config {
                         .pathStyleAccessEnabled(true)
                         .build());
 
-        if (!s3Endpoint.isBlank()) {
+        if (StringUtils.hasText(s3Endpoint)) {
             builder.endpointOverride(URI.create(s3Endpoint));
         }
 
