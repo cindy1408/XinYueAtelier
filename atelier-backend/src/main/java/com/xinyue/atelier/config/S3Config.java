@@ -29,6 +29,9 @@ public class S3Config {
     @Value("${aws.s3.endpoint:}")
     private String s3Endpoint;
 
+    @Value("${aws.s3.public-endpoint:}")
+    private String s3PublicEndpoint;
+
     @Bean
     public S3Client s3Client() {
         S3ClientBuilder builder = S3Client.builder()
@@ -45,6 +48,7 @@ public class S3Config {
         return builder.build();
     }
 
+    // uses a different public endpoint for Docker - localhost instead of localstack
     @Bean
     public S3Presigner s3Presigner() {
         S3Presigner.Builder builder = S3Presigner.builder()
@@ -56,8 +60,8 @@ public class S3Config {
                         .pathStyleAccessEnabled(true)
                         .build());
 
-        if (StringUtils.hasText(s3Endpoint)) {
-            builder.endpointOverride(URI.create(s3Endpoint));
+        if (StringUtils.hasText(s3PublicEndpoint)) {
+            builder.endpointOverride(URI.create(s3PublicEndpoint));
         }
 
         return builder.build();
