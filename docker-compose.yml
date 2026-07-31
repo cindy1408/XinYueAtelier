@@ -42,6 +42,7 @@ services:
       - SERVICES=s3
       - DEFAULT_REGION=eu-west-2
       - AWS_ENDPOINT_URL=http://localstack:4566
+      - S3_BUCKET=${S3_BUCKET}
     volumes:
       - "localstack-data:/var/lib/localstack"
       - "./init:/etc/localstack/init/ready.d"

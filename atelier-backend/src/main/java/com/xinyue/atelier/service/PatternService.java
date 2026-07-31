@@ -71,7 +71,6 @@ public class PatternService {
     }
 
     // --- Private helpers ---
-
     private String uploadPdfToS3(String folderName, String title, MultipartFile pdf) throws IOException {
         String extension = FilenameUtils.getExtension(pdf.getOriginalFilename());
         String key = "patterns/" + safeName(folderName) + "/" + safeName(title) + "." + extension;
@@ -85,20 +84,16 @@ public class PatternService {
                 RequestBody.fromBytes(pdf.getBytes())
         );
 
-        return "https://" + bucketName + ".s3.eu-west-2.amazonaws.com/" + key;
+        return key;
     }
 
-    private void deletePdfFromS3(String pdfUrl) {
-        String prefix = "https://" + bucketName + ".s3.eu-west-2.amazonaws.com/";
-        if (pdfUrl.startsWith(prefix)) {
-            String key = pdfUrl.substring(prefix.length());
-            s3Client.deleteObject(
-                    DeleteObjectRequest.builder()
-                            .bucket(bucketName)
-                            .key(key)
-                            .build()
-            );
-        }
+    private void deletePdfFromS3(String key) {
+        s3Client.deleteObject(
+                DeleteObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .build()
+        );
     }
 
     private String safeName(String input) {
@@ -109,10 +104,7 @@ public class PatternService {
                 .replaceAll("-{2,}", "-");
     }
 
-    public String generatePresignedUrl(String pdfUrl) {
-        String prefix = "https://" + bucketName + ".s3.eu-west-2.amazonaws.com/";
-        String key = pdfUrl.substring(prefix.length());
-
+    public String generatePresignedUrl(String key) {
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
                 .signatureDuration(Duration.ofMinutes(15))
                 .getObjectRequest(r -> r.bucket(bucketName).key(key))

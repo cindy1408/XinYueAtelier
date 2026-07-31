@@ -5,8 +5,10 @@ aws s3 sync dist/ s3://xinyueatelier-frontend --delete
 aws cloudfront create-invalidation --distribution-id E3EMQENX55CGZT --paths "/*"
 
 
-Next thing to do:
-Add migration
+# Useful Commands
+to check what's inside localstack S3 bucket
+docker compose exec localstack awslocal s3 ls s3://xin-yue-atelier --recursive
+
 
 
 
