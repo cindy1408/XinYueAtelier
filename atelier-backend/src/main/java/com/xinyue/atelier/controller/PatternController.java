@@ -47,10 +47,15 @@ public class PatternController {
     @GetMapping("/download/{patternId}")
     public ResponseEntity<Void> downloadPattern(@PathVariable UUID patternId) {
         Pattern pattern = patternRepo.findById(patternId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pattern not found"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Pattern not found"
+                ));
+
+        String presignedUrl = patternService.generatePresignedUrl(pattern.getPdfPath());
 
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Location", pattern.getPdfPath())
+                .header("Location", presignedUrl)
                 .build();
     }
 
