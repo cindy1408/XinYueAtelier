@@ -19,7 +19,7 @@ services:
     depends_on:
       - db
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: local
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/atelierdb
       SPRING_DATASOURCE_USERNAME: atelieruser
       SPRING_DATASOURCE_PASSWORD: password

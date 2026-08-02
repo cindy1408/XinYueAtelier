@@ -68,3 +68,9 @@ dist-ssr
 **/client_secret.json
 
 dist
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars

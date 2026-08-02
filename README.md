@@ -10,7 +10,18 @@ to check what's inside localstack S3 bucket
 docker compose exec localstack awslocal s3 ls s3://xin-yue-atelier --recursive
 
 
+# Terraform
+aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin 361769567236.dkr.ecr.eu-west-2.amazonaws.com
 
+cd atelier-backend
+docker buildx build -t atelier-backend .
+
+docker tag atelier-backend:latest 361769567236.dkr.ecr.eu-west-2.amazonaws.com/atelier-backend:latest
+
+docker push 361769567236.dkr.ecr.eu-west-2.amazonaws.com/atelier-backend:latest
+
+create VPC
+aws ec2 create-default-vpc --region eu-west-2
 
 # Atelier — Sewing Pattern Library Manager
 

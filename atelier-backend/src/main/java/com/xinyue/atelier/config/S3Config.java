@@ -11,6 +11,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 import java.net.URI;
 
@@ -36,9 +38,7 @@ public class S3Config {
     public S3Client s3Client() {
         S3ClientBuilder builder = S3Client.builder()
                 .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessKeyId, secretAccessKey)
-                ))
+                .credentialsProvider(credentialsProvider())
                 .forcePathStyle(true);
 
         if (StringUtils.hasText(s3Endpoint)) {
@@ -53,9 +53,7 @@ public class S3Config {
     public S3Presigner s3Presigner() {
         S3Presigner.Builder builder = S3Presigner.builder()
                 .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessKeyId, secretAccessKey)
-                ))
+                .credentialsProvider(credentialsProvider())
                 .serviceConfiguration(S3Configuration.builder()
                         .pathStyleAccessEnabled(true)
                         .build());
@@ -65,5 +63,13 @@ public class S3Config {
         }
 
         return builder.build();
+    }
+
+    private AwsCredentialsProvider credentialsProvider() {
+        if (StringUtils.hasText(accessKeyId) && StringUtils.hasText(secretAccessKey)) {
+            return StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create(accessKeyId, secretAccessKey));
+        }
+        return DefaultCredentialsProvider.create();
     }
 }
