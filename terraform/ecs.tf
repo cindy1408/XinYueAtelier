@@ -29,41 +29,44 @@ resource "aws_ecs_task_definition" "atelier" {
   cpu                      = "256"
   memory                   = "512"
 
-  execution_role_arn = aws_iam_role.ecs_execution_role.arn
-  task_role_arn       = aws_iam_role.ecs_task_role.arn
+    execution_role_arn = aws_iam_role.ecs_execution_role.arn
+    task_role_arn       = aws_iam_role.ecs_task_role.arn
 
-  container_definitions = jsonencode([
+    container_definitions = jsonencode([
     {
-      name      = "atelier-backend"
-      image     = var.backend_image
-      essential = true
+        name      = "atelier-backend"
+        image     = var.backend_image
+        essential = true
 
-      portMappings = [
+        portMappings = [
         { containerPort = 8080, hostPort = 8080 }
-      ]
+        ]
 
-      environment = [
+        environment = [
         { name = "SPRING_PROFILES_ACTIVE", value = "prod" },
         { name = "DB_HOST", value = aws_db_instance.atelier.address },
         { name = "DB_USERNAME", value = var.db_username },
-        { name = "DB_PASSWORD", value = var.db_password },
         { name = "GOOGLE_CLIENT_ID", value = var.google_client_id },
-        { name = "GOOGLE_CLIENT_SECRET", value = var.google_client_secret },
         { name = "FRONTEND_URL", value = var.frontend_url },
         { name = "S3_BUCKET", value = aws_s3_bucket.atelier.bucket },
         { name = "AWS_REGION", value = var.aws_region }
-      ]
+        ]
 
-      logConfiguration = {
+        secrets = [
+        { name = "DB_PASSWORD", valueFrom = aws_secretsmanager_secret.db_password.arn },
+        { name = "GOOGLE_CLIENT_SECRET", valueFrom = aws_secretsmanager_secret.google_client_secret.arn }
+        ]
+
+        logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.atelier.name
-          "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "backend"
+            "awslogs-group"         = aws_cloudwatch_log_group.atelier.name
+            "awslogs-region"        = var.aws_region
+            "awslogs-stream-prefix" = "backend"
         }
-      }
+        }
     }
-  ])
+    ])
 }
 
 resource "aws_cloudwatch_log_group" "atelier" {
@@ -75,7 +78,7 @@ resource "aws_ecs_service" "atelier" {
   name            = "atelier-service"
   cluster         = aws_ecs_cluster.atelier.id
   task_definition = aws_ecs_task_definition.atelier.arn
-  desired_count   = 1
+  desired_count   = var.ecs_desired_count
   launch_type     = "FARGATE"
 
   network_configuration {

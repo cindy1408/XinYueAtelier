@@ -29,3 +29,9 @@ variable "frontend_url" {
 variable "backend_image" {
   description = "ECR image URI, e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com/atelier-backend:latest"
 }
+
+variable "ecs_desired_count" {
+  description = "Number of ECS tasks to run. Set to 0 to stop the container and avoid Fargate costs."
+  type        = number
+  default     = 1
+}
