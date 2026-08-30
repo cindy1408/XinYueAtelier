@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -25,15 +26,15 @@ public class FolderController {
         return folderService.listRootFolders();
     }
 
-//    @GetMapping("/{parentId}/children")
-//    public List<FolderDto> getFolderChildren(@PathVariable UUID parentId) {
-//        return folderService.getFolderChildrenById(parentId);
-//    }
+   @GetMapping("/{parentId}/children")
+   public List<FolderDto> getFolderChildren(@PathVariable UUID parentId) {
+       return folderService.getFolderChildrenById(parentId);
+   }
 
-//    @GetMapping("/{folderId}")
-//    public Optional<FolderDto> getFolderById(@PathVariable UUID folderId) {
-//        return folderService.getFolderById(folderId);
-//    }
+   @GetMapping("/{folderId}")
+   public Optional<FolderDto> getFolderById(@PathVariable UUID folderId) {
+       return folderService.getFolderById(folderId);
+   }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FolderDto> createRootFolder(

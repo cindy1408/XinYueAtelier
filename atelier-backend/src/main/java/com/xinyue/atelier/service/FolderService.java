@@ -47,17 +47,17 @@ public class FolderService {
                 .toList();
     }
 
-//    public List<FolderDto> getFolderChildrenById(UUID parentId) {
-//        return folderRepo.findByParentFolderId(parentId)
-//                .stream()
-//                .map(folderMapper::toDto)
-//                .toList();
-//    }
+   public List<FolderDto> getFolderChildrenById(UUID parentId) {
+       return folderRepo.findByParentFolderId(parentId)
+               .stream()
+               .map(folderMapper::toDto)
+               .toList();
+   }
 
-//    public Optional<FolderDto> getFolderById(UUID id) {
-//        return folderRepo.findById(id)
-//                .map(folderMapper::toDto);
-//    }
+   public Optional<FolderDto> getFolderById(UUID id) {
+       return folderRepo.findById(id)
+               .map(folderMapper::toDto);
+   }
 
     @Transactional
     public FolderDto createFolder(
