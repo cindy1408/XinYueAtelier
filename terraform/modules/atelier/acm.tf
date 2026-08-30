@@ -1,10 +1,6 @@
-data "aws_route53_zone" "atelier" {
-  name         = "xyatelier.com"
-  private_zone = false
-}
-
 resource "aws_acm_certificate" "api" {
-  domain_name       = "api.xyatelier.com"
+  count             = var.enable_alb ? 1 : 0
+  domain_name       = var.api_domain_name
   validation_method = "DNS"
 
   lifecycle {
@@ -13,15 +9,15 @@ resource "aws_acm_certificate" "api" {
 }
 
 resource "aws_route53_record" "api_cert_validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.api.domain_validation_options : dvo.domain_name => {
+  for_each = var.enable_alb ? {
+    for dvo in aws_acm_certificate.api[0].domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
     }
-  }
+  } : {}
 
-  zone_id = data.aws_route53_zone.atelier.zone_id
+  zone_id = data.aws_route53_zone.atelier[0].zone_id
   name    = each.value.name
   type    = each.value.type
   records = [each.value.record]
@@ -29,6 +25,7 @@ resource "aws_route53_record" "api_cert_validation" {
 }
 
 resource "aws_acm_certificate_validation" "api" {
-  certificate_arn         = aws_acm_certificate.api.arn
+  count                   = var.enable_alb ? 1 : 0
+  certificate_arn         = aws_acm_certificate.api[0].arn
   validation_record_fqdns = [for record in aws_route53_record.api_cert_validation : record.fqdn]
 }

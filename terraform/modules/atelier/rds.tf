@@ -1,5 +1,5 @@
 resource "aws_security_group" "rds" {
-  name        = "atelier-rds-sg"
+  name        = "${var.name_prefix}-rds-sg"
   description = "Allow Postgres access from ECS tasks"
   vpc_id      = data.aws_vpc.default.id
 
@@ -19,15 +19,15 @@ resource "aws_security_group" "rds" {
 }
 
 resource "aws_db_subnet_group" "atelier" {
-  name       = "atelier-db-subnet-group"
+  name       = "${var.name_prefix}-db-subnet-group"
   subnet_ids = data.aws_subnets.default.ids
 }
 
 resource "aws_db_instance" "atelier" {
-  identifier     = "atelier-db"
+  identifier     = "${var.name_prefix}-db"
   engine         = "postgres"
   engine_version = "16.14"
-  instance_class = "db.t3.micro"
+  instance_class = var.db_instance_class
 
   allocated_storage = 20
   storage_type      = "gp3"
@@ -41,35 +41,15 @@ resource "aws_db_instance" "atelier" {
 
   publicly_accessible = false
 
-  deletion_protection  = true
-  skip_final_snapshot  = false
-  final_snapshot_identifier = "atelier-db-final-snapshot"
+  deletion_protection       = var.rds_deletion_protection
+  skip_final_snapshot       = var.rds_skip_final_snapshot
+  final_snapshot_identifier = var.rds_skip_final_snapshot ? null : "${var.name_prefix}-db-final-snapshot"
 
-  backup_retention_period = 7
+  backup_retention_period = var.rds_backup_retention_period
 
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-
-resource "aws_s3_bucket" "tf_state" {
-  bucket = "atelier-terraform-state"
-}
-
-resource "aws_s3_bucket_versioning" "tf_state" {
-  bucket = aws_s3_bucket.tf_state.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-resource "aws_dynamodb_table" "tf_lock" {
-  name         = "atelier-terraform-lock"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LockID"
-
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
+  # NOTE: `lifecycle { prevent_destroy = true }` is intentionally NOT set here.
+  # Terraform requires prevent_destroy to be a literal true/false, so it can't
+  # vary between dev and prod in a shared module. Protection instead comes from
+  # `deletion_protection` above, which is an AWS-API-level guard (parameterizable)
+  # rather than a Terraform-level one. For prod, set rds_deletion_protection = true.
 }

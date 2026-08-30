@@ -1,5 +1,5 @@
 resource "aws_iam_role" "ecs_task_role" {
-  name = "atelier-ecs-task-role"
+  name = "${var.name_prefix}-ecs-task-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -14,7 +14,7 @@ resource "aws_iam_role" "ecs_task_role" {
 }
 
 resource "aws_iam_role_policy" "s3_access" {
-  name = "atelier-s3-access"
+  name = "${var.name_prefix}-s3-access"
   role = aws_iam_role.ecs_task_role.id
 
   policy = jsonencode({
@@ -27,11 +27,12 @@ resource "aws_iam_role_policy" "s3_access" {
   })
 }
 
-# ecs_execution_role — used by ECS itself, before app even starts, to pull the Docker image from the registry and set up CloudWatch logging.
-# ecs_task_role — used by your  application code to call AWS APIs (S3). This is where DefaultCredentialsProvider picks up.
-# Separate role ECS itself needs to pull images / write logs — different from the task role above
+# ecs_execution_role — used by ECS itself, before app even starts, to pull the
+# Docker image from the registry and set up CloudWatch logging.
+# ecs_task_role — used by your application code to call AWS APIs (S3). This is
+# where DefaultCredentialsProvider picks up.
 resource "aws_iam_role" "ecs_execution_role" {
-  name = "atelier-ecs-execution-role"
+  name = "${var.name_prefix}-ecs-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -51,7 +52,7 @@ resource "aws_iam_role_policy_attachment" "ecs_execution" {
 }
 
 resource "aws_iam_role_policy" "secrets_access" {
-  name = "atelier-secrets-access"
+  name = "${var.name_prefix}-secrets-access"
   role = aws_iam_role.ecs_execution_role.id
 
   policy = jsonencode({

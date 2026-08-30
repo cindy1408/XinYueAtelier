@@ -27,7 +27,7 @@ variable "frontend_url" {
 }
 
 variable "backend_image" {
-  description = "ECR image URI, e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com/atelier-backend:latest"
+  description = "ECR image URI, e.g. 123456789.dkr.ecr.eu-west-2.amazonaws.com/atelier-backend:latest"
 }
 
 variable "ecs_desired_count" {

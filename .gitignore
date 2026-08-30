@@ -74,3 +74,4 @@ dist
 *.tfstate
 *.tfstate.*
 *.tfvars
+*/_archive/
