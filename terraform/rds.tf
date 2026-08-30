@@ -40,10 +40,16 @@ resource "aws_db_instance" "atelier" {
   vpc_security_group_ids = [aws_security_group.rds.id]
 
   publicly_accessible = false
-  skip_final_snapshot  = true
-  deletion_protection  = false
 
-  backup_retention_period = 1
+  deletion_protection  = true
+  skip_final_snapshot  = false
+  final_snapshot_identifier = "atelier-db-final-snapshot"
+
+  backup_retention_period = 7
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_s3_bucket" "tf_state" {

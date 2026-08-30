@@ -2,6 +2,13 @@ resource "aws_s3_bucket" "atelier" {
   bucket = var.s3_bucket_name
 }
 
+resource "aws_s3_bucket_versioning" "atelier" {
+  bucket = aws_s3_bucket.atelier.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
 resource "aws_s3_bucket_public_access_block" "atelier" {
   bucket = aws_s3_bucket.atelier.id
 
