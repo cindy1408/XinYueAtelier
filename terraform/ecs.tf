@@ -4,14 +4,14 @@ resource "aws_ecs_cluster" "atelier" {
 
 resource "aws_security_group" "ecs_tasks" {
   name        = "atelier-ecs-tasks-sg"
-  description = "Allow inbound app traffic, outbound to RDS/S3/internet"
+  description = "Allow inbound app traffic from ALB only, outbound to RDS/S3/internet"
   vpc_id      = data.aws_vpc.default.id
 
   ingress {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [aws_security_group.alb.id]
   }
 
   egress {
@@ -86,4 +86,12 @@ resource "aws_ecs_service" "atelier" {
     security_groups  = [aws_security_group.ecs_tasks.id]
     assign_public_ip = true
   }
+
+    load_balancer {
+    target_group_arn = aws_lb_target_group.atelier.arn
+    container_name    = "atelier-backend"
+    container_port    = 8080
+  }
+
+  depends_on = [aws_lb_listener.https]
 }
