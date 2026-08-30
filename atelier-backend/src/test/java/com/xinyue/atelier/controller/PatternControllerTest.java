@@ -127,17 +127,18 @@ class PatternControllerTest {
     void downloadPattern_returnsRedirectWithLocationHeader() {
         UUID patternId = UUID.randomUUID();
         Pattern pattern = new Pattern();
-        pattern.setPdfPath("https://test-bucket.s3.eu-west-2.amazonaws.com/patterns/folder/title.pdf");
+        pattern.setPdfPath("patterns/folder/title.pdf");
+
+        String signedUrl = "https://test-bucket.s3.eu-west-2.amazonaws.com/patterns/folder/title.pdf?signed=true";
 
         when(patternRepo.findById(patternId)).thenReturn(Optional.of(pattern));
+        when(patternService.generatePresignedUrl("patterns/folder/title.pdf")).thenReturn(signedUrl);
 
         ResponseEntity<Void> response = patternController.downloadPattern(patternId);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        assertThat(response.getHeaders().getFirst("Location"))
-                .isEqualTo("https://test-bucket.s3.eu-west-2.amazonaws.com/patterns/folder/title.pdf");
+        assertThat(response.getHeaders().getFirst("Location")).isEqualTo(signedUrl);
     }
-
     @Test
     void downloadPattern_throwsNotFoundWhenPatternDoesNotExist() {
         UUID patternId = UUID.randomUUID();

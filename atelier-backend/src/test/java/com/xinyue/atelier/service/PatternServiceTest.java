@@ -79,7 +79,7 @@ class PatternServiceTest {
         assertThat(result.getTitle()).isEqualTo("My Pattern");
         assertThat(result.getFolder()).isEqualTo(folder);
         assertThat(result.getPdfPath())
-                .isEqualTo("https://" + BUCKET_NAME + ".s3.eu-west-2.amazonaws.com/patterns/My-Folder/My-Pattern.pdf");
+                .isEqualTo("patterns/My-Folder/My-Pattern.pdf");
     }
 
     @Test
@@ -148,7 +148,7 @@ class PatternServiceTest {
     void delete_deletesPatternAndS3ObjectWhenPdfPathExists() {
         UUID patternId = UUID.randomUUID();
         Pattern pattern = new Pattern();
-        pattern.setPdfPath("https://" + BUCKET_NAME + ".s3.eu-west-2.amazonaws.com/patterns/folder/title.pdf");
+        pattern.setPdfPath("patterns/folder/title.pdf");
 
         when(patternRepo.findById(patternId)).thenReturn(Optional.of(pattern));
 
@@ -167,20 +167,6 @@ class PatternServiceTest {
         UUID patternId = UUID.randomUUID();
         Pattern pattern = new Pattern();
         pattern.setPdfPath(null);
-
-        when(patternRepo.findById(patternId)).thenReturn(Optional.of(pattern));
-
-        patternService.delete(patternId);
-
-        verifyNoInteractions(s3Client);
-        verify(patternRepo).delete(pattern);
-    }
-
-    @Test
-    void delete_skipsS3DeleteWhenPdfPathDoesNotMatchExpectedPrefix() {
-        UUID patternId = UUID.randomUUID();
-        Pattern pattern = new Pattern();
-        pattern.setPdfPath("https://some-other-bucket.s3.eu-west-2.amazonaws.com/patterns/folder/title.pdf");
 
         when(patternRepo.findById(patternId)).thenReturn(Optional.of(pattern));
 
