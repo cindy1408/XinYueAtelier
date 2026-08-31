@@ -9,6 +9,28 @@ resource "aws_s3_bucket_versioning" "atelier" {
   }
 }
 
+resource "aws_s3_bucket_cors_configuration" "atelier" {
+  bucket = aws_s3_bucket.atelier.id
+
+  cors_rule {
+    allowed_origins = [
+      "http://xinyueatelier-frontend.s3-website.eu-west-2.amazonaws.com"
+    ]
+
+    allowed_methods = [
+      "GET",
+      "HEAD"
+    ]
+
+    allowed_headers = ["*"]
+
+    expose_headers = [
+      "ETag"
+    ]
+  }
+}
+
+
 resource "aws_s3_bucket_public_access_block" "atelier" {
   bucket = aws_s3_bucket.atelier.id
 

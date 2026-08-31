@@ -75,3 +75,8 @@ dist
 *.tfstate.*
 *.tfvars
 */_archive/
+
+
+atelier-frontend/dist/
+atelier-frontend/dist-prod/
+atelier-frontend/coverage/
