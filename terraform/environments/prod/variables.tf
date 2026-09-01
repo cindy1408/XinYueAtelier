@@ -23,7 +23,7 @@ variable "s3_bucket_name" {
 }
 
 variable "frontend_url" {
-  default = "https://xinyueatelier.com"
+  default = "https://xyatelier.com"
 }
 
 variable "backend_image" {
