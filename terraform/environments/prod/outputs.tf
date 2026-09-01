@@ -10,10 +10,6 @@ output "s3_bucket" {
   value = module.atelier.s3_bucket
 }
 
-output "frontend_website_endpoint" {
-  value = module.atelier.frontend_website_endpoint
-}
-
 output "alb_dns_name" {
   value = module.atelier.alb_dns_name
 }
