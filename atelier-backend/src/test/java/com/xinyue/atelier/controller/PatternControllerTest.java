@@ -1,7 +1,6 @@
 package com.xinyue.atelier.controller;
 
 import com.xinyue.atelier.model.Pattern;
-import com.xinyue.atelier.repository.PatternRepo;
 import com.xinyue.atelier.service.PatternService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,14 +28,11 @@ class PatternControllerTest {
     @Mock
     private PatternService patternService;
 
-    @Mock
-    private PatternRepo patternRepo;
-
     private PatternController patternController;
 
     @BeforeEach
     void setUp() {
-        patternController = new PatternController(patternRepo, patternService);
+        patternController = new PatternController(patternService);
     }
 
     // ---------- create ----------
@@ -46,8 +41,7 @@ class PatternControllerTest {
     void create_returnsOkWithCreatedPattern() {
         UUID folderId = UUID.randomUUID();
         MockMultipartFile pdf = new MockMultipartFile(
-                "patternPdf", "pattern.pdf", "application/pdf", "fake-pdf".getBytes()
-        );
+                "patternPdf", "pattern.pdf", "application/pdf", "fake-pdf".getBytes());
         Pattern pattern = new Pattern();
         pattern.setTitle("My Pattern");
 
@@ -63,8 +57,7 @@ class PatternControllerTest {
     void create_passesCorrectArgumentsToService() {
         UUID folderId = UUID.randomUUID();
         MockMultipartFile pdf = new MockMultipartFile(
-                "patternPdf", "pattern.pdf", "application/pdf", "fake-pdf".getBytes()
-        );
+                "patternPdf", "pattern.pdf", "application/pdf", "fake-pdf".getBytes());
 
         when(patternService.create(any(), any(), any())).thenReturn(new Pattern());
 
@@ -81,18 +74,18 @@ class PatternControllerTest {
         Pattern pattern1 = new Pattern();
         Pattern pattern2 = new Pattern();
 
-        when(patternRepo.findAllByFolderId(folderId)).thenReturn(List.of(pattern1, pattern2));
+        when(patternService.getFilesByFolder(folderId)).thenReturn(List.of(pattern1, pattern2));
 
         List<Pattern> result = patternController.getFilesByFolderId(folderId);
 
         assertThat(result).containsExactly(pattern1, pattern2);
-        verify(patternRepo).findAllByFolderId(folderId);
+        verify(patternService).getFilesByFolder(folderId);
     }
 
     @Test
     void getFilesByFolderId_returnsEmptyListWhenNoPatterns() {
         UUID folderId = UUID.randomUUID();
-        when(patternRepo.findAllByFolderId(folderId)).thenReturn(List.of());
+        when(patternService.getFilesByFolder(folderId)).thenReturn(List.of());
 
         List<Pattern> result = patternController.getFilesByFolderId(folderId);
 
@@ -131,18 +124,19 @@ class PatternControllerTest {
 
         String signedUrl = "https://test-bucket.s3.eu-west-2.amazonaws.com/patterns/folder/title.pdf?signed=true";
 
-        when(patternRepo.findById(patternId)).thenReturn(Optional.of(pattern));
-        when(patternService.generatePresignedUrl("patterns/folder/title.pdf")).thenReturn(signedUrl);
+        when(patternService.getPresignedUrlForPattern(patternId)).thenReturn(signedUrl);
 
         ResponseEntity<Void> response = patternController.downloadPattern(patternId);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         assertThat(response.getHeaders().getFirst("Location")).isEqualTo(signedUrl);
     }
+
     @Test
     void downloadPattern_throwsNotFoundWhenPatternDoesNotExist() {
         UUID patternId = UUID.randomUUID();
-        when(patternRepo.findById(patternId)).thenReturn(Optional.empty());
+        when(patternService.getPresignedUrlForPattern(patternId))
+                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Pattern not found"));
 
         assertThatThrownBy(() -> patternController.downloadPattern(patternId))
                 .isInstanceOf(ResponseStatusException.class)
@@ -157,26 +151,27 @@ class PatternControllerTest {
         Pattern pattern = new Pattern();
         pattern.setPdfPath("https://test-bucket.s3.eu-west-2.amazonaws.com/patterns/folder/title.pdf");
 
-        when(patternRepo.findById(patternId)).thenReturn(Optional.of(pattern));
-        when(patternService.generatePresignedUrl(pattern.getPdfPath()))
+        when(patternService.getPresignedUrlForPattern(patternId))
                 .thenReturn("https://test-bucket.s3.eu-west-2.amazonaws.com/patterns/folder/title.pdf?signed=true");
 
         ResponseEntity<Map<String, String>> response = patternController.previewPattern(patternId);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody())
-                .containsEntry("url", "https://test-bucket.s3.eu-west-2.amazonaws.com/patterns/folder/title.pdf?signed=true");
+                .containsEntry("url",
+                        "https://test-bucket.s3.eu-west-2.amazonaws.com/patterns/folder/title.pdf?signed=true");
     }
 
     @Test
     void previewPattern_throwsNotFoundWhenPatternDoesNotExist() {
         UUID patternId = UUID.randomUUID();
-        when(patternRepo.findById(patternId)).thenReturn(Optional.empty());
+        when(patternService.getPresignedUrlForPattern(patternId))
+                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Pattern not found"));
 
         assertThatThrownBy(() -> patternController.previewPattern(patternId))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Pattern not found");
 
-        verifyNoInteractions(patternService);
+        verify(patternService).getPresignedUrlForPattern(patternId);
     }
 }
