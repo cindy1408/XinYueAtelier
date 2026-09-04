@@ -8,34 +8,116 @@ import DeleteFileModal from "./DeleteFileModal";
 import { apiFetch } from '../api/apiFetch';
 import { API_URL } from '../config';
 
+const styles = {
+  fileCard: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    border: "1px solid #ddd",
+    padding: "12px",
+    borderRadius: "8px",
+    boxSizing: "border-box",
+    width: "350px",
+    gap: "12px",
+  },
+  fileActions: {
+    display: "flex",
+    gap: "8px",
+  },
+  errorBanner: {
+    color: "#b00020",
+    marginBottom: "12px",
+  },
+  fileGrid: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "24px",
+  },
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
+    backgroundColor: "rgba(0,0,0,0.7)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+};
+
 function PatternPreview({ fileId, width = "200px", height = "260px" }) {
   const [blobUrl, setBlobUrl] = useState(null);
 
   useEffect(() => {
+    let cancelled = false;
     let objectUrl;
+
     apiFetch(`/patterns/preview/${fileId}`)
-      .then(res => res.json())
-      .then(({ url }) => fetch(url))          // fetch the S3 PDF directly
-      .then(res => res.blob())                 // convert to blob
-      .then(blob => {
-        objectUrl = URL.createObjectURL(blob); // create local blob URL
+      .then((res) => res.json())
+      .then(({ url }) => fetch(url))
+      .then((res) => res.blob())
+      .then((blob) => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
         setBlobUrl(objectUrl);
       })
-      .catch(console.error);
+      .catch((err) => {
+        if (!cancelled) console.error("Failed to load preview:", err);
+      });
 
     return () => {
-      if (objectUrl) URL.revokeObjectURL(objectUrl); // cleanup on unmount
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [fileId]);
 
-  if (!blobUrl) return <div style={{ width, height, display: "flex", alignItems: "center", justifyContent: "center" }}>Loading...</div>;
+  if (!blobUrl) {
+    return (
+      <div
+        style={{
+          width,
+          height,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        Loading...
+      </div>
+    );
+  }
 
   return (
-  <iframe
-    src={blobUrl}
-    style={{ width, height, border: "none", borderRadius: "8px" }}
-  />
-);
+    <iframe
+      title={`pattern-preview-${fileId}`}
+      src={blobUrl}
+      style={{ width, height, border: "none", borderRadius: "8px" }}
+    />
+  );
+}
+
+function FileCard({ file, onView, onDelete }) {
+  return (
+    <div style={styles.fileCard}>
+      <PatternPreview fileId={file.id} />
+      <h4 style={{ textAlign: "center" }}>{file.title}</h4>
+      <div style={styles.fileActions}>
+        <button onClick={() => onView(file)}>View</button>
+        <button
+          onClick={() =>
+            window.open(`${API_URL}/patterns/download/${file.id}`, "_blank")
+          }
+        >
+          Download
+        </button>
+        <button aria-label={`Delete ${file.title}`} onClick={() => onDelete(file)}>
+          🗑️
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function EachFolder() {
@@ -46,105 +128,83 @@ function EachFolder() {
   const [modalFile, setModalFile] = useState(null);
   const [editFolder, setEditFolder] = useState(null);
   const [fileToDelete, setFileToDelete] = useState(null);
+  const [error, setError] = useState(null);
+
+  const fetchFolder = useCallback(async () => {
+    try {
+      const res = await apiFetch(`/folder/${folderId}`);
+      if (!res.ok) throw new Error(`Failed to fetch folder (${res.status})`);
+      setFolder(await res.json());
+    } catch (err) {
+      console.error(err);
+      setError("Couldn't load this folder.");
+    }
+  }, [folderId]);
 
   const fetchChildren = useCallback(async () => {
     try {
       const res = await apiFetch(`/folder/${folderId}/children`);
-      if (!res.ok) {
-        console.error("Failed to fetch children:", res.status, await res.text());
-        return;
-      }
+      if (!res.ok) throw new Error(`Failed to fetch children (${res.status})`);
       const data = await res.json();
       setChildren(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error("Failed to fetch children:", err);
+      console.error(err);
+      setError("Couldn't load subfolders.");
     }
   }, [folderId]);
 
   const fetchFiles = useCallback(async () => {
     try {
       const res = await apiFetch(`/patterns/${folderId}/files`);
-      const data = await res.json();
-      setFiles(data);
+      if (!res.ok) throw new Error(`Failed to fetch files (${res.status})`);
+      setFiles(await res.json());
     } catch (err) {
-      console.error("Failed to fetch files", err);
+      console.error(err);
+      setError("Couldn't load files.");
     }
   }, [folderId]);
 
   useEffect(() => {
-    const loadFolder = async () => {
-      try {
-        const res = await apiFetch(`/folder/${folderId}`);
-        const data = await res.json();
-        setFolder(data);
-      } catch (err) {
-        console.error("Failed to fetch folder", err);
-      }
-    };
-
-    const loadChildren = async () => {
-      try {
-        const res = await apiFetch(`/folder/${folderId}/children`);
-        const data = await res.json();
-        setChildren(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Failed to fetch children:", err);
-      }
-    };
-
-    const loadFiles = async () => {
-      try {
-        const res = await apiFetch(`/patterns/${folderId}/files`);
-        const data = await res.json();
-        setFiles(data);
-      } catch (err) {
-        console.error("Failed to fetch files", err);
-      }
-    };
-
-    loadFolder();
-    loadChildren();
-    loadFiles();
-  }, [folderId]);
+    setError(null);
+    fetchFolder();
+    fetchChildren();
+    fetchFiles();
+  }, [fetchFolder, fetchChildren, fetchFiles]);
 
   const handleDeleteFile = async (fileId) => {
     try {
-      const res = await apiFetch(`/patterns/${fileId}`, { method: 'DELETE' });
-      if (res.ok) {
-        fetchFiles();
-      } else {
-        console.error("Failed to delete file");
-      }
+      const res = await apiFetch(`/patterns/${fileId}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete file");
+      fetchFiles();
     } catch (err) {
-      console.error("Error deleting file:", err);
+      console.error(err);
+      setError("Couldn't delete that file. Please try again.");
     }
   };
 
-  const handleDeleteFolder = async (folder) => {
-    if (!window.confirm(`Delete "${folder.folderName}" and all its contents?`)) return;
+  const handleDeleteFolder = async (folderToDelete) => {
+    if (!window.confirm(`Delete "${folderToDelete.folderName}" and all its contents?`)) {
+      return;
+    }
     try {
-      const res = await apiFetch(`/folder/${folder.id}`, { method: 'DELETE' });
-      if (res.ok) {
-        fetchChildren();
-      } else {
-        console.error("Failed to delete folder");
-      }
+      const res = await apiFetch(`/folder/${folderToDelete.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete folder");
+      fetchChildren();
     } catch (err) {
-      console.error("Error deleting folder:", err);
+      console.error(err);
+      setError("Couldn't delete that folder. Please try again.");
     }
   };
-
 
   return (
     <div>
       <h2>Folder: {folder ? folder.folderName : "Loading..."}</h2>
 
+      {error && <div style={styles.errorBanner}>{error}</div>}
+
       <PatternUpload onUpload={fetchFiles} />
 
-      <CreateFolder
-        parentId={folderId}
-        onCreated={() => fetchChildren()}
-      />
+      <CreateFolder parentId={folderId} onCreated={fetchChildren} />
 
       <h3>Subfolders</h3>
       {children.length === 0 ? (
@@ -152,7 +212,7 @@ function EachFolder() {
       ) : (
         <FolderList
           folders={children}
-          onEdit={(folder) => setEditFolder(folder)}
+          onEdit={(f) => setEditFolder(f)}
           onDelete={handleDeleteFolder}
         />
       )}
@@ -161,56 +221,20 @@ function EachFolder() {
       {files.length === 0 ? (
         <p>No files in this folder</p>
       ) : (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "24px" }}>
+        <div style={styles.fileGrid}>
           {files.map((file) => (
-            <div
+            <FileCard
               key={file.id}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                border: "1px solid #ddd",
-                padding: "12px",
-                borderRadius: "8px",
-                boxSizing: "border-box",
-                width: "350px",
-                gap: "12px",
-              }}
-            >
-              <PatternPreview fileId={file.id} />
-              <h4 style={{ textAlign: "center" }}>{file.title}</h4>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button onClick={() => setModalFile(file)}>View</button>
-                <button
-                  onClick={() =>
-                    window.open(`${API_URL}/patterns/download/${file.id}`, "_blank")
-                  }
-                >
-                  Download
-                </button>
-                <button onClick={() => setFileToDelete(file)}>🗑️</button>
-              </div>
-            </div>
+              file={file}
+              onView={setModalFile}
+              onDelete={setFileToDelete}
+            />
           ))}
         </div>
       )}
 
       {modalFile && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0,0,0,0.7)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-          }}
-          onClick={() => setModalFile(null)}
-        >
+        <div style={styles.modalOverlay} onClick={() => setModalFile(null)}>
           <PatternPreview fileId={modalFile.id} width="85vw" height="85vh" />
         </div>
       )}

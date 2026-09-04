@@ -1,14 +1,12 @@
 package com.xinyue.atelier.controller;
 
 import com.xinyue.atelier.model.Pattern;
-import com.xinyue.atelier.repository.PatternRepo;
 import com.xinyue.atelier.service.PatternService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -18,11 +16,9 @@ import java.util.UUID;
 @RequestMapping("/patterns")
 public class PatternController {
     private final PatternService patternService;
-    private final PatternRepo patternRepo;
 
-    public PatternController(PatternRepo patternRepo, PatternService patternService) {
+    public PatternController(PatternService patternService) {
         this.patternService = patternService;
-        this.patternRepo = patternRepo;
     }
 
     @PostMapping(value = "/{folderId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -35,8 +31,7 @@ public class PatternController {
 
     @GetMapping("/{folderId}/files")
     public List<Pattern> getFilesByFolderId(@PathVariable UUID folderId) {
-        System.out.println("HIT getFilesByFolderId: " + folderId);
-        return patternRepo.findAllByFolderId(folderId);
+        return patternService.getFilesByFolder(folderId);
     }
 
     @DeleteMapping("/{patternId}")
@@ -46,13 +41,7 @@ public class PatternController {
 
     @GetMapping("/download/{patternId}")
     public ResponseEntity<Void> downloadPattern(@PathVariable UUID patternId) {
-        Pattern pattern = patternRepo.findById(patternId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Pattern not found"
-                ));
-
-        String presignedUrl = patternService.generatePresignedUrl(pattern.getPdfPath());
+        String presignedUrl = patternService.getPresignedUrlForPattern(patternId);
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header("Location", presignedUrl)
@@ -61,10 +50,7 @@ public class PatternController {
 
     @GetMapping("/preview/{patternId}")
     public ResponseEntity<Map<String, String>> previewPattern(@PathVariable UUID patternId) {
-        Pattern pattern = patternRepo.findById(patternId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pattern not found"));
-
-        String presignedUrl = patternService.generatePresignedUrl(pattern.getPdfPath());
+        String presignedUrl = patternService.getPresignedUrlForPattern(patternId);
         return ResponseEntity.ok(Map.of("url", presignedUrl));
     }
 }

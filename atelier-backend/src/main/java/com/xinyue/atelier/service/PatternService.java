@@ -5,39 +5,26 @@ import com.xinyue.atelier.model.Pattern;
 import com.xinyue.atelier.repository.FolderRepo;
 import com.xinyue.atelier.repository.PatternRepo;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-
 import java.io.IOException;
-import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 public class PatternService {
 
-    @Value("${aws.s3.bucket}")
-    private String bucketName;
-
-    private final S3Client s3Client;
     private final PatternRepo patternRepo;
     private final FolderRepo folderRepo;
-    private final S3Presigner s3Presigner;
+    private final S3StorageService storageService;
 
-    public PatternService(S3Client s3Client, PatternRepo patternRepo, FolderRepo folderRepo, S3Presigner s3Presigner) {
-        this.s3Client = s3Client;
+    public PatternService(PatternRepo patternRepo, FolderRepo folderRepo, S3StorageService storageService) {
         this.patternRepo = patternRepo;
         this.folderRepo = folderRepo;
-        this.s3Presigner = s3Presigner;
+        this.storageService = storageService;
     }
 
     public Pattern create(String title, MultipartFile pdf, UUID folderId) {
@@ -45,12 +32,13 @@ public class PatternService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
 
         try {
-            String pdfUrl = uploadPdfToS3(folder.getFolderName(), title, pdf);
+            String key = buildPdfKey(folder.getFolderName(), title, pdf);
+            storageService.upload(key, pdf.getBytes(), "application/pdf");
 
             Pattern pattern = new Pattern();
             pattern.setTitle(title);
             pattern.setFolder(folder);
-            pattern.setPdfPath(pdfUrl);
+            pattern.setPdfPath(key);
 
             return patternRepo.save(pattern);
 
@@ -59,41 +47,40 @@ public class PatternService {
         }
     }
 
+    public List<Pattern> getFilesByFolder(UUID folderId) {
+        return patternRepo.findAllByFolderId(folderId);
+    }
+
     public void delete(UUID patternId) {
-        Pattern pattern = patternRepo.findById(patternId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pattern not found"));
+        Pattern pattern = findPatternOrThrow(patternId);
 
         if (pattern.getPdfPath() != null) {
-            deletePdfFromS3(pattern.getPdfPath());
+            storageService.delete(pattern.getPdfPath());
         }
 
         patternRepo.delete(pattern);
     }
 
-    // --- Private helpers ---
-    private String uploadPdfToS3(String folderName, String title, MultipartFile pdf) throws IOException {
-        String extension = FilenameUtils.getExtension(pdf.getOriginalFilename());
-        String key = "patterns/" + safeName(folderName) + "/" + safeName(title) + "." + extension;
-
-        s3Client.putObject(
-                PutObjectRequest.builder()
-                        .bucket(bucketName)
-                        .key(key)
-                        .contentType("application/pdf")
-                        .build(),
-                RequestBody.fromBytes(pdf.getBytes())
-        );
-
-        return key;
+    /**
+     * Presigned URL for downloading/previewing a pattern's PDF.
+     * Both use cases need the same lookup + presign, so callers (download and
+     * preview endpoints) share this rather than each re-fetching the pattern.
+     */
+    public String getPresignedUrlForPattern(UUID patternId) {
+        Pattern pattern = findPatternOrThrow(patternId);
+        return storageService.presign(pattern.getPdfPath());
     }
 
-    private void deletePdfFromS3(String key) {
-        s3Client.deleteObject(
-                DeleteObjectRequest.builder()
-                        .bucket(bucketName)
-                        .key(key)
-                        .build()
-        );
+    // --- Private helpers ---
+
+    private Pattern findPatternOrThrow(UUID patternId) {
+        return patternRepo.findById(patternId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pattern not found"));
+    }
+
+    private String buildPdfKey(String folderName, String title, MultipartFile pdf) {
+        String extension = FilenameUtils.getExtension(pdf.getOriginalFilename());
+        return "patterns/" + safeName(folderName) + "/" + safeName(title) + "." + extension;
     }
 
     private String safeName(String input) {
@@ -102,14 +89,5 @@ public class PatternService {
                 .replaceAll("\\s+", "-")
                 .replaceAll("[^a-zA-Z0-9-_]", "")
                 .replaceAll("-{2,}", "-");
-    }
-
-    public String generatePresignedUrl(String key) {
-        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(15))
-                .getObjectRequest(r -> r.bucket(bucketName).key(key))
-                .build();
-
-        return s3Presigner.presignGetObject(presignRequest).url().toString();
     }
 }

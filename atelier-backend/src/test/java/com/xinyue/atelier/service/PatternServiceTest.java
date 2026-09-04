@@ -11,18 +11,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,11 +24,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class PatternServiceTest {
 
-    private static final String BUCKET_NAME = "test-bucket";
-
-    @Mock
-    private S3Client s3Client;
-
     @Mock
     private PatternRepo patternRepo;
 
@@ -46,17 +31,13 @@ class PatternServiceTest {
     private FolderRepo folderRepo;
 
     @Mock
-    private S3Presigner s3Presigner;
-
-    @Mock
-    private PresignedGetObjectRequest presignedRequest;
+    private S3StorageService storageService;
 
     private PatternService patternService;
 
     @BeforeEach
     void setUp() {
-        patternService = new PatternService(s3Client, patternRepo, folderRepo, s3Presigner);
-        ReflectionTestUtils.setField(patternService, "bucketName", BUCKET_NAME);
+        patternService = new PatternService(patternRepo, folderRepo, storageService);
     }
 
     // ---------- create ----------
@@ -68,8 +49,7 @@ class PatternServiceTest {
         folder.setFolderName("My Folder");
 
         MockMultipartFile pdf = new MockMultipartFile(
-                "pdf", "pattern.pdf", "application/pdf", "fake-pdf-bytes".getBytes()
-        );
+                "pdf", "pattern.pdf", "application/pdf", "fake-pdf-bytes".getBytes());
 
         when(folderRepo.findById(folderId)).thenReturn(Optional.of(folder));
         when(patternRepo.save(any(Pattern.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -89,18 +69,17 @@ class PatternServiceTest {
         folder.setFolderName("My Weird Folder!!");
 
         MockMultipartFile pdf = new MockMultipartFile(
-                "pdf", "pattern.pdf", "application/pdf", "fake-pdf-bytes".getBytes()
-        );
+                "pdf", "pattern.pdf", "application/pdf", "fake-pdf-bytes".getBytes());
 
         when(folderRepo.findById(folderId)).thenReturn(Optional.of(folder));
         when(patternRepo.save(any(Pattern.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Pattern result = patternService.create("A Title: With Spaces & Symbols!", pdf, folderId);
 
-        ArgumentCaptor<PutObjectRequest> captor = ArgumentCaptor.forClass(PutObjectRequest.class);
-        verify(s3Client).putObject(captor.capture(), (RequestBody) any());
+        verify(storageService).upload(eq("patterns/My-Weird-Folder/A-Title-With-Spaces-Symbols.pdf"), any(),
+                eq("application/pdf"));
 
-        assertThat(captor.getValue().key()).isEqualTo("patterns/My-Weird-Folder/A-Title-With-Spaces-Symbols.pdf");
+        verify(patternRepo).save(any(Pattern.class));
     }
 
     @Test
@@ -110,27 +89,21 @@ class PatternServiceTest {
         folder.setFolderName("Folder");
 
         MockMultipartFile pdf = new MockMultipartFile(
-                "pdf", "pattern.pdf", "application/pdf", "fake-pdf-bytes".getBytes()
-        );
+                "pdf", "pattern.pdf", "application/pdf", "fake-pdf-bytes".getBytes());
 
         when(folderRepo.findById(folderId)).thenReturn(Optional.of(folder));
         when(patternRepo.save(any(Pattern.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         patternService.create("Title", pdf, folderId);
 
-        ArgumentCaptor<PutObjectRequest> captor = ArgumentCaptor.forClass(PutObjectRequest.class);
-        verify(s3Client).putObject(captor.capture(), (RequestBody) any());
-
-        assertThat(captor.getValue().bucket()).isEqualTo(BUCKET_NAME);
-        assertThat(captor.getValue().contentType()).isEqualTo("application/pdf");
+        verify(storageService).upload(anyString(), any(), eq("application/pdf"));
     }
 
     @Test
     void create_throwsNotFoundWhenFolderDoesNotExist() {
         UUID folderId = UUID.randomUUID();
         MockMultipartFile pdf = new MockMultipartFile(
-                "pdf", "pattern.pdf", "application/pdf", "fake-pdf-bytes".getBytes()
-        );
+                "pdf", "pattern.pdf", "application/pdf", "fake-pdf-bytes".getBytes());
 
         when(folderRepo.findById(folderId)).thenReturn(Optional.empty());
 
@@ -138,7 +111,7 @@ class PatternServiceTest {
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Folder not found");
 
-        verifyNoInteractions(s3Client);
+        verifyNoInteractions(storageService);
         verify(patternRepo, never()).save(any());
     }
 
@@ -154,10 +127,7 @@ class PatternServiceTest {
 
         patternService.delete(patternId);
 
-        ArgumentCaptor<DeleteObjectRequest> captor = ArgumentCaptor.forClass(DeleteObjectRequest.class);
-        verify(s3Client).deleteObject(captor.capture());
-        assertThat(captor.getValue().bucket()).isEqualTo(BUCKET_NAME);
-        assertThat(captor.getValue().key()).isEqualTo("patterns/folder/title.pdf");
+        verify(storageService).delete("patterns/folder/title.pdf");
 
         verify(patternRepo).delete(pattern);
     }
@@ -172,7 +142,7 @@ class PatternServiceTest {
 
         patternService.delete(patternId);
 
-        verifyNoInteractions(s3Client);
+        verifyNoInteractions(storageService);
         verify(patternRepo).delete(pattern);
     }
 
@@ -185,38 +155,8 @@ class PatternServiceTest {
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Pattern not found");
 
-        verifyNoInteractions(s3Client);
+        verifyNoInteractions(storageService);
         verify(patternRepo, never()).delete(any());
     }
 
-    // ---------- generatePresignedUrl ----------
-
-    @Test
-    void generatePresignedUrl_extractsKeyAndReturnsSignedUrl() throws MalformedURLException {
-        String pdfUrl = "https://" + BUCKET_NAME + ".s3.eu-west-2.amazonaws.com/patterns/folder/title.pdf";
-        URL signedUrl = new URL("https://" + BUCKET_NAME + ".s3.eu-west-2.amazonaws.com/patterns/folder/title.pdf?signed=true");
-
-        when(presignedRequest.url()).thenReturn(signedUrl);
-        when(s3Presigner.presignGetObject(any(GetObjectPresignRequest.class))).thenReturn(presignedRequest);
-
-        String result = patternService.generatePresignedUrl(pdfUrl);
-
-        assertThat(result).isEqualTo(signedUrl.toString());
-    }
-
-    @Test
-    void generatePresignedUrl_usesCorrectSignatureDuration() throws MalformedURLException {
-        String pdfUrl = "https://" + BUCKET_NAME + ".s3.eu-west-2.amazonaws.com/patterns/folder/title.pdf";
-        URL signedUrl = new URL("https://example.com/signed");
-
-        when(presignedRequest.url()).thenReturn(signedUrl);
-        when(s3Presigner.presignGetObject(any(GetObjectPresignRequest.class))).thenReturn(presignedRequest);
-
-        patternService.generatePresignedUrl(pdfUrl);
-
-        ArgumentCaptor<GetObjectPresignRequest> captor = ArgumentCaptor.forClass(GetObjectPresignRequest.class);
-        verify(s3Presigner).presignGetObject(captor.capture());
-
-        assertThat(captor.getValue().signatureDuration()).isEqualTo(java.time.Duration.ofMinutes(15));
-    }
 }
