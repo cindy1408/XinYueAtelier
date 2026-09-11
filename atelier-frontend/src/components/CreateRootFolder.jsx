@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiFetch } from "../api/apiFetch";
 
-function CreateFolder({ onCreated }) {
+function CreateRootFolder({ onCreated }) {
   const { folderId } = useParams();
   const parentId = folderId ?? null;
   const [title, setTitle] = useState("");
@@ -134,4 +134,4 @@ function CreateFolder({ onCreated }) {
   );
 }
 
-export default CreateFolder;
+export default CreateRootFolder;

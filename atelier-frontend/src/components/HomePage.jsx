@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import FolderList from "./FolderList";
-import CreateFolder from "./CreateFolder";
+import CreateRootFolder from "./CreateRootFolder";
 import EditFolderModal from "./EditFolderModal";
 import { apiFetch } from '../api/apiFetch';
 
@@ -69,7 +69,7 @@ export default function HomePage() {
       </button>
 
       {showForm && (
-        <CreateFolder onCreated={handleFolderCreated} />
+        <CreateRootFolder onCreated={handleFolderCreated} />
       )}
 
       <div style={{ display: "flex", gap: "8px", margin: "16px 0" }}>

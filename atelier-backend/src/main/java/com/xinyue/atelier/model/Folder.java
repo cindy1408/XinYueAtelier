@@ -28,11 +28,9 @@ public class Folder {
     private String imagePath;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private PatternOrigin origin;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Level level;
 
     @Enumerated(EnumType.STRING)

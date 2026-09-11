@@ -150,9 +150,12 @@ public class FolderService {
     }
 
     private <E extends Enum<E>> E parseEnum(Class<E> enumType, String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
         try {
             return Enum.valueOf(enumType, value.trim().toUpperCase());
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Invalid value for " + enumType.getSimpleName());
