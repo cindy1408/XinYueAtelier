@@ -44,6 +44,9 @@ function FolderList({ folders, onEdit, onDelete }) {
                     }}
                   >
                     <span>
+                      <strong>Ref:</strong> {folder.ref}
+                    </span>
+                    <span>
                       <strong>Title:</strong> {folder.folderName}
                     </span>
                     <span>
