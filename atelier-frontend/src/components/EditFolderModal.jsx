@@ -17,6 +17,7 @@ function EditFolderModal({ folder, onClose, onSaved }) {
 
   const handleSave = async () => {
     const data = new FormData();
+    data.append("ref", formData.ref);
     data.append("folderName", formData.folderName);
     data.append("garmentType", formData.garmentType);
     data.append("origin", formData.origin);
