@@ -7,17 +7,13 @@ import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.repository.FolderRepo;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.core.sync.RequestBody;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,17 +23,16 @@ import java.util.UUID;
 @Service
 public class FolderService {
 
-    @Value("${aws.s3.bucket}")
-    private String bucketName;
+    private static final Logger log = LoggerFactory.getLogger(FolderService.class);
 
-    private final S3Client s3Client;
     private final FolderRepo folderRepo;
     private final FolderMapper folderMapper;
+    private final S3StorageService storageService;
 
-    public FolderService(S3Client s3Client, FolderRepo folderRepo, FolderMapper folderMapper) {
-        this.s3Client = s3Client;
+    public FolderService(FolderRepo folderRepo, FolderMapper folderMapper, S3StorageService storageService) {
         this.folderRepo = folderRepo;
         this.folderMapper = folderMapper;
+        this.storageService = storageService;
     }
 
     public List<FolderDto> listRootFolders() {
@@ -47,17 +42,17 @@ public class FolderService {
                 .toList();
     }
 
-   public List<FolderDto> getFolderChildrenById(UUID parentId) {
-       return folderRepo.findByParentFolderId(parentId)
-               .stream()
-               .map(folderMapper::toDto)
-               .toList();
-   }
+    public List<FolderDto> getFolderChildrenById(UUID parentId) {
+        return folderRepo.findByParentFolderId(parentId)
+                .stream()
+                .map(folderMapper::toDto)
+                .toList();
+    }
 
-   public Optional<FolderDto> getFolderById(UUID id) {
-       return folderRepo.findById(id)
-               .map(folderMapper::toDto);
-   }
+    public Optional<FolderDto> getFolderById(UUID id) {
+        return folderRepo.findById(id)
+                .map(folderMapper::toDto);
+    }
 
     @Transactional
     public FolderDto createFolder(
@@ -67,9 +62,7 @@ public class FolderService {
             String origin,
             String level,
             MultipartFile image,
-            UUID parentId
-    ) {
-        System.out.println("Creating folder with garmentType: " + garmentType);
+            UUID parentId) {
         Folder folder = new Folder();
 
         if (parentId != null) {
@@ -81,16 +74,17 @@ public class FolderService {
         folder.setRef(ref);
         folder.setFolderName(title);
         folder.setGarmentType(parseEnum(GarmentType.class, garmentType));
-        System.out.println("Parsed garmentType: " + folder.getGarmentType());
         folder.setOrigin(parseEnum(PatternOrigin.class, origin));
         folder.setLevel(parseEnum(Level.class, level));
+
+        log.debug("Creating folder '{}' with garmentType={}", title, folder.getGarmentType());
 
         folder = folderRepo.save(folder);
 
         try {
             if (image != null && !image.isEmpty()) {
-                String imageUrl = uploadImageToS3(folder, image);
-                folder.setImagePath(imageUrl);
+                String imageKey = uploadImage(folder, image);
+                folder.setImagePath(imageKey);
                 folder = folderRepo.save(folder);
             }
 
@@ -101,48 +95,45 @@ public class FolderService {
         }
     }
 
-//    public FolderDto updateFolder(
-//            UUID id,
-//            Integer ref,
-//            String folderName,
-//            String garmentType,
-//            String origin,
-//            String level,
-//            MultipartFile image
-//    ) {
-//        Folder folder = folderRepo.findById(id)
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
-//
-//        try {
-//            if (image != null && !image.isEmpty()) {
-//                // Delete old image from S3 if there is one
-//                if (folder.getImagePath() != null) {
-//                    deleteImageFromS3(folder.getImagePath());
-//                }
-//                String imageUrl = uploadImageToS3(folder, image);
-//                folder.setImagePath(imageUrl);
-//            }
-//
-//            folder.setRef(ref);
-//            folder.setFolderName(folderName);
-//            folder.setGarmentType(parseEnum(GarmentType.class, garmentType));
-//            folder.setOrigin(parseEnum(PatternOrigin.class, origin));
-//            folder.setLevel(parseEnum(Level.class, level));
-//
-//            return folderMapper.toDto(folderRepo.save(folder));
-//
-//        } catch (IOException e) {
-//            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update folder", e);
-//        }
-//    }
+    public FolderDto updateFolder(
+            UUID id,
+            Integer ref,
+            String folderName,
+            String garmentType,
+            String origin,
+            String level,
+            MultipartFile image) {
+        Folder folder = folderRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
+
+        try {
+            if (image != null && !image.isEmpty()) {
+                if (folder.getImagePath() != null) {
+                    storageService.delete(folder.getImagePath());
+                }
+                String imageKey = uploadImage(folder, image);
+                folder.setImagePath(imageKey);
+            }
+
+            folder.setRef(ref);
+            folder.setFolderName(folderName);
+            folder.setGarmentType(parseEnum(GarmentType.class, garmentType));
+            folder.setOrigin(parseEnum(PatternOrigin.class, origin));
+            folder.setLevel(parseEnum(Level.class, level));
+
+            return folderMapper.toDto(folderRepo.save(folder));
+
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update folder", e);
+        }
+    }
 
     public void deleteFolder(UUID id) {
         Folder folder = folderRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
 
-        // Delete image from S3 if present
         if (folder.getImagePath() != null) {
-            deleteImageFromS3(folder.getImagePath());
+            storageService.delete(folder.getImagePath());
         }
 
         // DB delete cascades to subfolders and patterns via CascadeType.ALL
@@ -151,37 +142,12 @@ public class FolderService {
 
     // --- Private helpers ---
 
-    private String uploadImageToS3(Folder folder, MultipartFile image) throws IOException {
+    private String uploadImage(Folder folder, MultipartFile image) throws IOException {
         String extension = FilenameUtils.getExtension(image.getOriginalFilename());
         String key = "folders/" + folder.getId() + "/image." + extension;
-
-        s3Client.putObject(
-                PutObjectRequest.builder()
-                        .bucket(bucketName)
-                        .key(key)
-                        .contentType(image.getContentType())
-                        .build(),
-                RequestBody.fromBytes(image.getBytes())
-        );
-
+        storageService.upload(key, image.getBytes(), image.getContentType());
         return key;
     }
-
-    private void deleteImageFromS3(String imageKey) {
-        s3Client.deleteObject(
-                DeleteObjectRequest.builder()
-                        .bucket(bucketName)
-                        .key(imageKey)
-                        .build()
-        );
-    }
-
-//    private String safeName(String input) {
-//        return input
-//                .trim()
-//                .replaceAll("\\s+", "-")
-//                .replaceAll("[^a-zA-Z0-9-_]", "");
-//    }
 
     private <E extends Enum<E>> E parseEnum(Class<E> enumType, String value) {
         try {
@@ -189,8 +155,7 @@ public class FolderService {
         } catch (Exception e) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Invalid value for " + enumType.getSimpleName()
-            );
+                    "Invalid value for " + enumType.getSimpleName());
         }
     }
 }

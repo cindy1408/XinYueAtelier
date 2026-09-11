@@ -72,19 +72,19 @@ public class FolderController {
 //        );
 //    }
 
-//    @PutMapping("/{id}")
-//    public FolderDto updateFolder(
-//            @PathVariable UUID id,
-//            @RequestParam Integer ref,
-//            @RequestParam String folderName,
-//            @RequestParam String garmentType,
-//            @RequestParam String origin,
-//            @RequestParam String level,
-//            @RequestParam(required = false) MultipartFile image
-//    ) {
-//        return folderService.updateFolder(id, ref, folderName, garmentType, origin, level, image);
-//    }
-//
+   @PutMapping("/{id}")
+   public FolderDto updateFolder(
+           @PathVariable UUID id,
+           @RequestParam Integer ref,
+           @RequestParam String folderName,
+           @RequestParam String garmentType,
+           @RequestParam String origin,
+           @RequestParam String level,
+           @RequestParam(required = false) MultipartFile image
+   ) {
+       return folderService.updateFolder(id, ref, folderName, garmentType, origin, level, image);
+   }
+
     @DeleteMapping("/{id}")
     public void deleteFolder(@PathVariable UUID id) throws IOException {
         folderService.deleteFolder(id);

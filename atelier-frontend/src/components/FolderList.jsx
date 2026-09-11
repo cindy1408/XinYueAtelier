@@ -1,10 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import EditFolderModal from './EditFolderModal';
 
 function FolderList({ folders, onEdit, onDelete }) {
   const navigate = useNavigate();
-  const [editFolder, setEditFolder] = useState(null);
 
   return (
     <div>
@@ -47,6 +44,9 @@ function FolderList({ folders, onEdit, onDelete }) {
                     }}
                   >
                     <span>
+                      <strong>Ref:</strong> {folder.ref}
+                    </span>
+                    <span>
                       <strong>Title:</strong> {folder.folderName}
                     </span>
                     <span>
@@ -73,16 +73,6 @@ function FolderList({ folders, onEdit, onDelete }) {
           <p>No folders found</p>
         )}
 
-        {editFolder && (
-          <EditFolderModal
-            folder={editFolder}
-            onClose={() => setEditFolder(null)}
-            onSaved={() => {
-              onEdit();
-              setEditFolder(null);
-            }}
-          />
-        )}
       </div>
     </div>
   );
