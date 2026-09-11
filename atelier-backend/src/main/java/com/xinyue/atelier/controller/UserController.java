@@ -1,7 +1,6 @@
 package com.xinyue.atelier.controller;
 
 import com.xinyue.atelier.model.User;
-import com.xinyue.atelier.repository.UserRepo;
 import com.xinyue.atelier.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
