@@ -52,25 +52,21 @@ public class FolderController {
         );
     }
 
-//    @PostMapping(
-//            value = "/{parentId}",
-//            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-//    )
-//    public ResponseEntity<FolderDto> createChildFolder(
-//            @PathVariable UUID parentId,
-//            @RequestParam Integer ref,
-//            @RequestParam String title,
-//            @RequestParam String garmentType,
-//            @RequestParam String origin,
-//            @RequestParam String level,
-//            @RequestParam MultipartFile image
-//    ) {
-//        return ResponseEntity.ok(
-//                folderService.createFolder(
-//                        ref, title, garmentType, origin, level, image, parentId
-//                )
-//        );
-//    }
+   @PostMapping(
+           value = "/{parentId}",
+           consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+   )
+   public ResponseEntity<FolderDto> createChildFolder(
+           @PathVariable UUID parentId,
+           @RequestParam String title,
+           @RequestParam MultipartFile image
+   ) {
+       return ResponseEntity.ok(
+               folderService.createFolder(
+                       null, title, null, null, null, image, parentId
+               )
+       );
+   }
 
    @PutMapping("/{id}")
    public FolderDto updateFolder(

@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import PatternUpload from "./PatternUpload";
-import CreateFolder from "./CreateFolder";
+import CreateSubFolder from "./CreateSubFolder";
 import FolderList from "./FolderList";
 import EditFolderModal from "./EditFolderModal";
 import DeleteFileModal from "./DeleteFileModal";
@@ -204,7 +204,7 @@ function EachFolder() {
 
       <PatternUpload onUpload={fetchFiles} />
 
-      <CreateFolder parentId={folderId} onCreated={fetchChildren} />
+      <CreateSubFolder parentId={folderId} onCreated={fetchChildren} />
 
       <h3>Subfolders</h3>
       {children.length === 0 ? (
