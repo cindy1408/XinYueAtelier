@@ -7,12 +7,12 @@ import com.xinyue.atelier.repository.PatternRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -115,6 +115,40 @@ class PatternServiceTest {
         verify(patternRepo, never()).save(any());
     }
 
+    @Test
+    void create_derivesExtensionFromOriginalFilenameNotHardcoded() {
+        UUID folderId = UUID.randomUUID();
+        Folder folder = new Folder();
+        folder.setFolderName("Folder");
+
+        MockMultipartFile pdf = new MockMultipartFile(
+                "pdf", "scan.PDF", "application/pdf", "fake-pdf-bytes".getBytes());
+
+        when(folderRepo.findById(folderId)).thenReturn(Optional.of(folder));
+        when(patternRepo.save(any(Pattern.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Pattern result = patternService.create("Title", pdf, folderId);
+
+        assertThat(result.getPdfPath()).isEqualTo("patterns/Folder/Title.PDF");
+    }
+
+    @Test
+    void create_collapsesRepeatedHyphensInSanitizedName() {
+        UUID folderId = UUID.randomUUID();
+        Folder folder = new Folder();
+        folder.setFolderName("Folder");
+
+        MockMultipartFile pdf = new MockMultipartFile(
+                "pdf", "pattern.pdf", "application/pdf", "fake-pdf-bytes".getBytes());
+
+        when(folderRepo.findById(folderId)).thenReturn(Optional.of(folder));
+        when(patternRepo.save(any(Pattern.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Pattern result = patternService.create("Title   With   Gaps", pdf, folderId);
+
+        assertThat(result.getPdfPath()).isEqualTo("patterns/Folder/Title-With-Gaps.pdf");
+    }
+
     // ---------- delete ----------
 
     @Test
@@ -158,5 +192,61 @@ class PatternServiceTest {
         verifyNoInteractions(storageService);
         verify(patternRepo, never()).delete(any());
     }
+
+    // ---------- getFilesByFolder ----------
+
+    @Test
+    void getFilesByFolder_returnsPatternsForFolder() {
+        UUID folderId = UUID.randomUUID();
+        Pattern pattern1 = new Pattern();
+        Pattern pattern2 = new Pattern();
+
+        when(patternRepo.findAllByFolderId(folderId)).thenReturn(List.of(pattern1, pattern2));
+
+        List<Pattern> result = patternService.getFilesByFolder(folderId);
+
+        assertThat(result).containsExactly(pattern1, pattern2);
+        verify(patternRepo).findAllByFolderId(folderId);
+    }
+
+    @Test
+    void getFilesByFolder_returnsEmptyListWhenFolderHasNoPatterns() {
+        UUID folderId = UUID.randomUUID();
+        when(patternRepo.findAllByFolderId(folderId)).thenReturn(List.of());
+
+        List<Pattern> result = patternService.getFilesByFolder(folderId);
+
+        assertThat(result).isEmpty();
+    }
+
+// ---------- getPresignedUrlForPattern ----------
+
+    @Test
+    void getPresignedUrlForPattern_returnsPresignedUrlWhenPatternExists() {
+        UUID patternId = UUID.randomUUID();
+        Pattern pattern = new Pattern();
+        pattern.setPdfPath("patterns/folder/title.pdf");
+
+        when(patternRepo.findById(patternId)).thenReturn(Optional.of(pattern));
+        when(storageService.presign("patterns/folder/title.pdf")).thenReturn("https://example.com/signed-url");
+
+        String result = patternService.getPresignedUrlForPattern(patternId);
+
+        assertThat(result).isEqualTo("https://example.com/signed-url");
+        verify(storageService).presign("patterns/folder/title.pdf");
+    }
+
+    @Test
+    void getPresignedUrlForPattern_throwsNotFoundWhenPatternDoesNotExist() {
+        UUID patternId = UUID.randomUUID();
+        when(patternRepo.findById(patternId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> patternService.getPresignedUrlForPattern(patternId))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("Pattern not found");
+
+        verifyNoInteractions(storageService);
+    }
+
 
 }

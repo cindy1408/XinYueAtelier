@@ -83,11 +83,15 @@ Safe — separate state file from prod, `rds_deletion_protection = false` here s
 **Purpose:** the real, live app. Handle with care — `deletion_protection = true` on RDS blocks accidental deletion, but redeploys and config changes still need to be deliberate.
 
 deploy frontend to prod: 
-cd atelier-frontend
-docker build --build-arg VITE_API_URL=https://api.xyatelier.com -t atelier-frontend-prod .
-docker create --name temp-frontend atelier-frontend-prod
-docker cp temp-frontend:/usr/share/nginx/html ./dist-prod
+
+rm -rf ./dist-prod && docker build --build-arg VITE_API_URL=https://api.xyatelier.com -t atelier-frontend-prod . && \
+docker create --name temp-frontend atelier-frontend-prod && \
+docker cp temp-frontend:/usr/share/nginx/html ./dist-prod && \
 docker rm temp-frontend
+
+or just: 
+./deploy-frontend-prod.sh
+
 
 aws s3 sync ./dist-prod s3://xinyueatelier-frontend --delete --region eu-west-2
 
@@ -96,7 +100,9 @@ Authenticate Docker to ECR:
 
 aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin 361769567236.dkr.ecr.eu-west-2.amazonaws.com
 
+./deploy-backend-prod.sh
 
+or 
 **1. Build and push the image (same platform flag matters here too):**
 ```bash
 docker build --platform linux/amd64 -t atelier-backend:latest ./atelier-backend
