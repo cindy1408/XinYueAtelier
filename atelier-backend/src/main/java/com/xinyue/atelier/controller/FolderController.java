@@ -1,5 +1,6 @@
 package com.xinyue.atelier.controller;
 
+import com.xinyue.atelier.GarmentType;
 import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.service.FolderService;
 import org.springframework.http.MediaType;
@@ -36,9 +37,14 @@ public class FolderController {
        return folderService.getFolderById(folderId);
    }
 
+    @GetMapping("/next-ref")
+    public Integer getNextAvailableRef(GarmentType garmentType) {
+        return folderService.getNextAvailableRef(garmentType);
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<FolderDto> createRootFolder(
-            @RequestParam Integer ref,
+            @RequestParam(required = false) Integer ref,
             @RequestParam String title,
             @RequestParam String garmentType,
             @RequestParam String origin,
