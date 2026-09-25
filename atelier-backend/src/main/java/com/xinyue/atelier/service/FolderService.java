@@ -167,6 +167,23 @@ public class FolderService {
         return key;
     }
 
+    public Integer getNextAvailableRef(GarmentType garmentType) {
+        boolean course = garmentType == GarmentType.COURSE;
+        List<Integer> usedRefs = folderRepo.findAllUsedRefsByGroup(course);
+
+        int nextRef = 1;
+
+        for (Integer ref : usedRefs) {
+            if (ref == nextRef) {
+                nextRef++;
+            } else if (ref > nextRef) {
+                break;
+            }
+        }
+
+        return nextRef;
+    }
+
     private <E extends Enum<E>> E parseEnum(Class<E> enumType, String value) {
         if (value == null || value.isBlank()) {
             return null;

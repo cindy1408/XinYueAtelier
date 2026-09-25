@@ -22,7 +22,7 @@ public class Folder {
 
     private String folderName;
 
-    @Column(name = "ref")
+    @Column(name = "ref", unique = true)
     private Integer ref;
 
     private String imagePath;
@@ -47,12 +47,4 @@ public class Folder {
     @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Pattern> patterns = new ArrayList<>();
-
-    @JsonIgnore
-    public String getRelativePath() {
-        if (parentFolder == null) {
-            return folderName;
-        }
-        return parentFolder.getRelativePath() + "/" + folderName;
-    }
 }

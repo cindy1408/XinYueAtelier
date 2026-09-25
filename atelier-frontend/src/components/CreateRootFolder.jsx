@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiFetch } from "../api/apiFetch";
 
@@ -7,11 +7,31 @@ function CreateRootFolder({ onCreated }) {
   const parentId = folderId ?? null;
   const [title, setTitle] = useState("");
   const [ref, setRef] = useState("");
+  const [nextRef, setNextRef] = useState("");
   const [garmentType, setGarmentType] = useState("COURSE");
   const [level, setLevel] = useState("BEGINNER");
   const [origin, setOrigin] = useState("DRAFTED");
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchNextRef = async () => {
+      try {
+        const response = await apiFetch(
+          `/folder/next-ref?garmentType=${garmentType}`
+        );
+
+        if (response.ok) {
+          const nextRefNumber = await response.json();
+          setNextRef(nextRefNumber);
+        }
+      } catch (err) {
+        console.error("Failed to fetch next available ref:", err);
+      }
+    };
+
+    fetchNextRef();
+  }, [garmentType]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +42,11 @@ function CreateRootFolder({ onCreated }) {
     setLoading(true);
 
     const formData = new FormData();
-    formData.append("ref", ref);
+
+    if (ref !== "") {
+      formData.append("ref", ref);
+    }
+
     formData.append("title", title);
     formData.append("garmentType", garmentType);
     formData.append("level", level);
@@ -30,19 +54,20 @@ function CreateRootFolder({ onCreated }) {
     formData.append("image", image);
 
     try {
-        const response = await apiFetch(parentId ? `/folder/${parentId}` : `/folder`, {
-          method: "POST",
-          body: formData,
-        });
+      const response = await apiFetch(parentId ? `/folder/${parentId}` : `/folder`, {
+        method: "POST",
+        body: formData,
+      });
 
       if (response.ok) {
         onCreated();
-        setRef(0);
+        setRef("");
         setTitle("");
         setGarmentType("COURSE");
         setLevel("BEGINNER");
         setOrigin("DRAFTED");
         setImage(null);
+
       } else {
         const errText = await response.text();
         alert("Failed to create folder: " + errText);
@@ -60,12 +85,12 @@ function CreateRootFolder({ onCreated }) {
       <h2>Create Folder</h2>
 
       <label>
-        Reference 
+        Reference
         <input
           type="number"
           value={ref}
+          placeholder={nextRef ?? ""}
           onChange={(e) => setRef(e.target.value)}
-          required
         />
       </label>
 
