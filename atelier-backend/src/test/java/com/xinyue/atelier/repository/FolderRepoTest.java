@@ -1,8 +1,8 @@
 package com.xinyue.atelier.repository;
 
-import com.xinyue.atelier.GarmentType;
-import com.xinyue.atelier.Level;
-import com.xinyue.atelier.PatternOrigin;
+import com.xinyue.atelier.model.GarmentType;
+import com.xinyue.atelier.model.Level;
+import com.xinyue.atelier.model.PatternOrigin;
 import com.xinyue.atelier.model.Folder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

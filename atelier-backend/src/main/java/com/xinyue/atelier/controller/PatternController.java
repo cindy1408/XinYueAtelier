@@ -28,7 +28,7 @@ public class PatternController {
             @PathVariable UUID folderId) {
         return ResponseEntity.ok(patternService.create(title, patternPdf, folderId));
     }
-
+// TODO: change to /files/{folderId}
     @GetMapping("/{folderId}/files")
     public List<Pattern> getFilesByFolderId(@PathVariable UUID folderId) {
         return patternService.getFilesByFolder(folderId);

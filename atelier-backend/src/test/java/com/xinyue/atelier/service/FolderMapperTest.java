@@ -1,10 +1,11 @@
 package com.xinyue.atelier.service;
 
-import com.xinyue.atelier.GarmentType;
-import com.xinyue.atelier.Level;
-import com.xinyue.atelier.PatternOrigin;
+import com.xinyue.atelier.model.GarmentType;
+import com.xinyue.atelier.model.Level;
+import com.xinyue.atelier.model.PatternOrigin;
 import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.model.Folder;
+import com.xinyue.atelier.model.mapper.FolderMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

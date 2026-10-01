@@ -1,9 +1,6 @@
 package com.xinyue.atelier.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.xinyue.atelier.GarmentType;
-import com.xinyue.atelier.Level;
-import com.xinyue.atelier.PatternOrigin;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

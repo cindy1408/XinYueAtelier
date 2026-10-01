@@ -1,6 +1,6 @@
 package com.xinyue.atelier.controller;
 
-import com.xinyue.atelier.GarmentType;
+import com.xinyue.atelier.model.GarmentType;
 import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.service.FolderService;
 import org.springframework.http.MediaType;
@@ -27,6 +27,7 @@ public class FolderController {
         return folderService.listRootFolders();
     }
 
+//    TODO: Validate request parameters and path variables
    @GetMapping("/{parentId}/children")
    public List<FolderDto> getFolderChildren(@PathVariable UUID parentId) {
        return folderService.getFolderChildrenById(parentId);

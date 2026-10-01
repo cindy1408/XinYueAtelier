@@ -1,4 +1,4 @@
-package com.xinyue.atelier;
+package com.xinyue.atelier.model;
 
 public enum Level {
     BEGINNER,

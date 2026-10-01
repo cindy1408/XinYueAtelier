@@ -1,7 +1,8 @@
-package com.xinyue.atelier.service;
+package com.xinyue.atelier.model.mapper;
 
 import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.model.Folder;
+import com.xinyue.atelier.service.S3StorageService;
 import org.springframework.stereotype.Service;
 
 @Service

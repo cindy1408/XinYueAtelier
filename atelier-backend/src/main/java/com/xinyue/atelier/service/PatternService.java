@@ -29,6 +29,7 @@ public class PatternService {
 
     public Pattern create(String title, MultipartFile pdf, UUID folderId) {
         Folder folder = folderRepo.findById(folderId)
+//                TODO: put in config, standardise errors returned HTTP Exception Handler Class - annotated with controller advice
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
 
         try {
@@ -57,7 +58,7 @@ public class PatternService {
         if (pattern.getPdfPath() != null) {
             storageService.delete(pattern.getPdfPath());
         }
-
+// TODO: response code that delete was successful or 404 when not etc
         patternRepo.delete(pattern);
     }
 
