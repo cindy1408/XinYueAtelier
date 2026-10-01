@@ -1,6 +1,7 @@
 package com.xinyue.atelier.repository;
 
 import com.xinyue.atelier.model.Folder;
+import com.xinyue.atelier.model.GarmentType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,17 +17,22 @@ public interface FolderRepo extends JpaRepository<Folder, UUID> {
     List<Folder> findByParentFolderId(UUID parentId);
 
     @Query("""
-    SELECT f.ref
-    FROM Folder f
-    WHERE f.ref IS NOT NULL
-    AND (
-        (:course = true AND f.garmentType = com.xinyue.atelier.GarmentType.COURSE)
-        OR
-        (:course = false AND f.garmentType <> com.xinyue.atelier.GarmentType.COURSE)
-    )
+    SELECT f.ref FROM Folder f
+    WHERE f.ref IS NOT NULL AND f.garmentType = :type
     ORDER BY f.ref
 """)
-    List<Integer> findAllUsedRefsByGroup(
-            @Param("course") boolean course
-    );
+    List<Integer> findUsedRefsByType(@Param("type") GarmentType type);
+
+    @Query("""
+    SELECT f.ref FROM Folder f
+    WHERE f.ref IS NOT NULL AND f.garmentType <> :type
+    ORDER BY f.ref
+""")
+    List<Integer> findUsedRefsExcludingType(@Param("type") GarmentType type);
+
+    default List<Integer> findAllUsedRefsByGroup(boolean course) {
+        return course
+                ? findUsedRefsByType(GarmentType.COURSE)
+                : findUsedRefsExcludingType(GarmentType.COURSE);
+    }
 }
