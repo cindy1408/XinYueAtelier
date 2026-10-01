@@ -1,5 +1,7 @@
 package com.xinyue.atelier.service;
 
+import com.xinyue.atelier.exceptions.FileProcessingException;
+import com.xinyue.atelier.exceptions.ResourceNotFoundException;
 import com.xinyue.atelier.model.GarmentType;
 import com.xinyue.atelier.model.Level;
 import com.xinyue.atelier.model.PatternOrigin;
@@ -17,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.nio.file.FileSystemAlreadyExistsException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -50,25 +53,26 @@ public class FolderService {
                 .toList();
     }
 
-    public Optional<FolderDto> getFolderById(UUID id) {
+    public FolderDto getFolderById(UUID id) throws ResourceNotFoundException {
         return folderRepo.findById(id)
-                .map(folderMapper::toDto);
+                .map(folderMapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("Folder", id));
     }
 
     @Transactional
     public FolderDto createFolder(
             Integer ref,
             String title,
-            String garmentType,
+            Enum garmentType,
             String origin,
             String level,
             MultipartFile image,
-            UUID parentId) {
+            UUID parentId) throws FileProcessingException {
         Folder folder = new Folder();
 
         if (parentId != null) {
             Folder parent = folderRepo.findById(parentId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent folder not found"));
+                    .orElseThrow(() -> new FileSystemAlreadyExistsException("Parent folder not found"));
             folder.setParentFolder(parent);
         }
 
@@ -76,7 +80,7 @@ public class FolderService {
         folder.setFolderName(title);
         // Enum validation happens before any persistence or S3 call, so an
         // invalid value never leaves partial side effects behind.
-        folder.setGarmentType(parseEnum(GarmentType.class, garmentType));
+        folder.setGarmentType((GarmentType) garmentType);
         folder.setOrigin(parseEnum(PatternOrigin.class, origin));
         folder.setLevel(parseEnum(Level.class, level));
 
@@ -90,12 +94,12 @@ public class FolderService {
                 folder.setImagePath(imageKey);
                 folder = folderRepo.save(folder);
             } catch (IOException e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create folder", e);
+                throw new FileSystemAlreadyExistsException("Failed to create folder");
             } catch (RuntimeException e) {
                 // Covers unchecked failures from the storage layer (e.g. AWS
                 // SDK exceptions), which otherwise propagated to callers
                 // unwrapped.
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create folder", e);
+                throw new FileSystemAlreadyExistsException("Failed to create folder");
             }
         }
 
@@ -109,9 +113,9 @@ public class FolderService {
             String garmentType,
             String origin,
             String level,
-            MultipartFile image) {
+            MultipartFile image) throws ResourceNotFoundException {
         Folder folder = folderRepo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Folder not found", id));
 
         // Validate all enum values up front, before touching S3, so an
         // invalid value can never leave the folder's image in an
@@ -143,16 +147,12 @@ public class FolderService {
         }
     }
 
-    public void deleteFolder(UUID id) {
+    public void deleteFolder(UUID id) throws FileProcessingException {
         Folder folder = folderRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
 
         if (folder.getImagePath() != null) {
-            try {
-                storageService.delete(folder.getImagePath());
-            } catch (RuntimeException e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete folder", e);
-            }
+            storageService.delete(folder.getImagePath());
         }
 
         // DB delete cascades to subfolders and patterns via CascadeType.ALL

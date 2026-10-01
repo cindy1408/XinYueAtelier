@@ -1,5 +1,7 @@
 package com.xinyue.atelier.controller;
 
+import com.xinyue.atelier.exceptions.FileProcessingException;
+import com.xinyue.atelier.exceptions.ResourceNotFoundException;
 import com.xinyue.atelier.model.GarmentType;
 import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.service.FolderService;
@@ -8,9 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -29,14 +29,15 @@ public class FolderController {
 
 //    TODO: Validate request parameters and path variables
    @GetMapping("/{parentId}/children")
-   public List<FolderDto> getFolderChildren(@PathVariable UUID parentId) {
+   public List<FolderDto> getFolderChildren(@PathVariable UUID parentId) throws ResourceNotFoundException {
        return folderService.getFolderChildrenById(parentId);
    }
 
-   @GetMapping("/{folderId}")
-   public Optional<FolderDto> getFolderById(@PathVariable UUID folderId) {
-       return folderService.getFolderById(folderId);
-   }
+    // Controller
+    @GetMapping("/{folderId}")
+    public FolderDto getFolderById(@PathVariable UUID folderId) throws ResourceNotFoundException {
+        return folderService.getFolderById(folderId);
+    }
 
     @GetMapping("/next-ref")
     public Integer getNextAvailableRef(GarmentType garmentType) {
@@ -47,11 +48,11 @@ public class FolderController {
     public ResponseEntity<FolderDto> createRootFolder(
             @RequestParam(required = false) Integer ref,
             @RequestParam String title,
-            @RequestParam String garmentType,
+            @RequestParam Enum garmentType,
             @RequestParam String origin,
             @RequestParam String level,
             @RequestParam MultipartFile image
-    ) {
+    ) throws FileProcessingException {
         return ResponseEntity.ok(
                 folderService.createFolder(
                         ref, title, garmentType, origin, level, image, null
@@ -67,7 +68,7 @@ public class FolderController {
            @PathVariable UUID parentId,
            @RequestParam String title,
            @RequestParam MultipartFile image
-   ) {
+   ) throws FileProcessingException {
        return ResponseEntity.ok(
                folderService.createFolder(
                        null, title, null, null, null, image, parentId
@@ -84,12 +85,12 @@ public class FolderController {
            @RequestParam String origin,
            @RequestParam String level,
            @RequestParam(required = false) MultipartFile image
-   ) {
+   ) throws ResourceNotFoundException {
        return folderService.updateFolder(id, ref, folderName, garmentType, origin, level, image);
    }
 
     @DeleteMapping("/{id}")
-    public void deleteFolder(@PathVariable UUID id) throws IOException {
+    public void deleteFolder(@PathVariable UUID id) throws FileProcessingException {
         folderService.deleteFolder(id);
     }
 }

@@ -1,5 +1,9 @@
 package com.xinyue.atelier.controller;
 
+import com.xinyue.atelier.exceptions.ApiError;
+import com.xinyue.atelier.exceptions.FileProcessingException;
+import com.xinyue.atelier.exceptions.ResourceNotFoundException;
+import com.xinyue.atelier.exceptions.StorageException;
 import com.xinyue.atelier.model.Pattern;
 import com.xinyue.atelier.service.PatternService;
 import org.springframework.http.HttpStatus;
@@ -25,22 +29,22 @@ public class PatternController {
     public ResponseEntity<Pattern> create(
             @RequestParam MultipartFile patternPdf,
             @RequestParam String title,
-            @PathVariable UUID folderId) {
+            @PathVariable UUID folderId) throws Exception {
         return ResponseEntity.ok(patternService.create(title, patternPdf, folderId));
     }
 // TODO: change to /files/{folderId}
     @GetMapping("/{folderId}/files")
-    public List<Pattern> getFilesByFolderId(@PathVariable UUID folderId) {
+    public List<Pattern> getFilesByFolderId(@PathVariable UUID folderId) throws ResourceNotFoundException {
         return patternService.getFilesByFolder(folderId);
     }
 
     @DeleteMapping("/{patternId}")
-    public void deletePattern(@PathVariable UUID patternId) {
+    public void deletePattern(@PathVariable UUID patternId) throws ResourceNotFoundException {
         patternService.delete(patternId);
     }
 
     @GetMapping("/download/{patternId}")
-    public ResponseEntity<Void> downloadPattern(@PathVariable UUID patternId) {
+    public ResponseEntity<Void> downloadPattern(@PathVariable UUID patternId) throws ResourceNotFoundException {
         String presignedUrl = patternService.getPresignedUrlForPattern(patternId);
 
         return ResponseEntity.status(HttpStatus.FOUND)
@@ -49,7 +53,7 @@ public class PatternController {
     }
 
     @GetMapping("/preview/{patternId}")
-    public ResponseEntity<Map<String, String>> previewPattern(@PathVariable UUID patternId) {
+    public ResponseEntity<Map<String, String>> previewPattern(@PathVariable UUID patternId) throws ResourceNotFoundException {
         String presignedUrl = patternService.getPresignedUrlForPattern(patternId);
         return ResponseEntity.ok(Map.of("url", presignedUrl));
     }

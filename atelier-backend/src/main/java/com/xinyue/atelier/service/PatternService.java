@@ -1,14 +1,16 @@
 package com.xinyue.atelier.service;
 
+import com.xinyue.atelier.exceptions.FileProcessingException;
+import com.xinyue.atelier.exceptions.ResourceNotFoundException;
 import com.xinyue.atelier.model.Folder;
 import com.xinyue.atelier.model.Pattern;
 import com.xinyue.atelier.repository.FolderRepo;
 import com.xinyue.atelier.repository.PatternRepo;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.http.HttpStatus;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,39 +29,45 @@ public class PatternService {
         this.storageService = storageService;
     }
 
-    public Pattern create(String title, MultipartFile pdf, UUID folderId) {
+    public Pattern create(String title, MultipartFile pdf, UUID folderId) throws Exception {
         Folder folder = folderRepo.findById(folderId)
-//                TODO: put in config, standardise errors returned HTTP Exception Handler Class - annotated with controller advice
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Folder", folderId));
 
+        byte[] bytes;
         try {
-            String key = buildPdfKey(folder.getFolderName(), title, pdf);
-            storageService.upload(key, pdf.getBytes(), "application/pdf");
-
-            Pattern pattern = new Pattern();
-            pattern.setTitle(title);
-            pattern.setFolder(folder);
-            pattern.setPdfPath(key);
-
-            return patternRepo.save(pattern);
-
+            bytes = pdf.getBytes();
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create pattern", e);
+            throw new FileProcessingException("Failed to read uploaded PDF", e);
         }
+
+        if (pdf.isEmpty()) {
+            throw new BadRequestException("PDF file is empty");
+        }
+        if (!"application/pdf".equals(pdf.getContentType())) {
+            throw new BadRequestException("File must be a PDF");
+        }
+
+        String key = buildPdfKey(folder.getFolderName(), title, pdf);
+        storageService.upload(key, bytes, "application/pdf");
+
+        Pattern pattern = new Pattern();
+        pattern.setTitle(title);
+        pattern.setFolder(folder);
+        pattern.setPdfPath(key);
+        return patternRepo.save(pattern);
     }
 
-    public List<Pattern> getFilesByFolder(UUID folderId) {
+    public List<Pattern> getFilesByFolder(UUID folderId) throws ResourceNotFoundException {
         return patternRepo.findAllByFolderId(folderId);
     }
 
-    public void delete(UUID patternId) {
+    @Transactional
+    public void delete(UUID patternId) throws ResourceNotFoundException {
         Pattern pattern = findPatternOrThrow(patternId);
-
-        if (pattern.getPdfPath() != null) {
-            storageService.delete(pattern.getPdfPath());
-        }
-// TODO: response code that delete was successful or 404 when not etc
         patternRepo.delete(pattern);
+        if (pattern.getPdfPath() != null) {
+            storageService.delete(pattern.getPdfPath());   // StorageException propagates, row delete rolls back
+        }
     }
 
     /**
@@ -67,16 +75,16 @@ public class PatternService {
      * Both use cases need the same lookup + presign, so callers (download and
      * preview endpoints) share this rather than each re-fetching the pattern.
      */
-    public String getPresignedUrlForPattern(UUID patternId) {
+    public String getPresignedUrlForPattern(UUID patternId) throws ResourceNotFoundException {
         Pattern pattern = findPatternOrThrow(patternId);
         return storageService.presign(pattern.getPdfPath());
     }
 
     // --- Private helpers ---
 
-    private Pattern findPatternOrThrow(UUID patternId) {
+    private Pattern findPatternOrThrow(UUID patternId) throws ResourceNotFoundException {
         return patternRepo.findById(patternId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pattern not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Pattern not found", patternId));
     }
 
     private String buildPdfKey(String folderName, String title, MultipartFile pdf) {
