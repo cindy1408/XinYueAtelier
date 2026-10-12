@@ -75,6 +75,8 @@ dist
 *.tfstate.*
 *.tfvars
 */_archive/
+   tfplan
+   *.tfplan
 
 
 atelier-frontend/dist/
