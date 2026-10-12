@@ -172,7 +172,7 @@ google_client_secret = "your-google-client-secret"
 s3_bucket_name       = "globally-unique-production-bucket-name"
 frontend_url         = "https://xyatelier.com"
 backend_image        = "ACCOUNT_ID.dkr.ecr.eu-west-2.amazonaws.com/atelier-backend:latest"
-ecs_desired_count    = 1
+ecs_desired_count    = 0
 ```
 
 Then run:
