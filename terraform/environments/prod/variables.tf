@@ -33,5 +33,5 @@ variable "backend_image" {
 variable "ecs_desired_count" {
   description = "Number of ECS tasks to run. Set to 0 to stop the container and avoid Fargate costs."
   type        = number
-  default     = 1
+  default     = 0
 }

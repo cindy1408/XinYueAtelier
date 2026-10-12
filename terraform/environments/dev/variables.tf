@@ -38,5 +38,5 @@ variable "backend_image_tag" {
 variable "ecs_desired_count" {
   description = "Set to 0 to stop the container and avoid Fargate costs when not testing."
   type        = number
-  default     = 1
+  default     = 0
 }

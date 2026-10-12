@@ -54,7 +54,7 @@ variable "backend_image" {
 
 variable "ecs_desired_count" {
   type    = number
-  default = 1
+  default = 0
 }
 
 variable "db_instance_class" {
@@ -93,4 +93,10 @@ variable "api_domain_name" {
 variable "route53_zone_name" {
   type    = string
   default = "xyatelier.com"
+}
+
+variable "enable_backend" {
+  description = "Create RDS, ECS, IAM roles and secrets. False = frontend-only."
+  type        = bool
+  default     = false
 }

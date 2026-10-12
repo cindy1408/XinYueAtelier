@@ -1,5 +1,5 @@
 output "rds_endpoint" {
-  value = aws_db_instance.atelier.address
+  value = var.enable_backend ? aws_db_instance.atelier[0].address : null
 }
 
 output "s3_bucket" {
@@ -8,11 +8,11 @@ output "s3_bucket" {
 
 
 output "ecs_cluster_name" {
-  value = aws_ecs_cluster.atelier.name
+  value = var.enable_backend ? aws_ecs_cluster.atelier[0].name : null
 }
 
 output "ecs_service_name" {
-  value = aws_ecs_service.atelier.name
+  value = var.enable_backend ? aws_ecs_service.atelier[0].name : null
 }
 
 output "alb_dns_name" {

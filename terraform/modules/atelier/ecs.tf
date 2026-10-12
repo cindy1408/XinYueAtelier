@@ -1,11 +1,13 @@
 resource "aws_ecs_cluster" "atelier" {
-  name = "${var.name_prefix}-cluster"
+  count = var.enable_backend ? 1 : 0
+  name  = "${var.name_prefix}-cluster"
 }
 
 resource "aws_security_group" "ecs_tasks" {
   name        = "${var.name_prefix}-ecs-tasks-sg"
   description = "Allow inbound app traffic from ALB only, outbound to RDS/S3/internet"
   vpc_id      = data.aws_vpc.default.id
+  count       = var.enable_backend ? 1 : 0
 
   dynamic "ingress" {
     for_each = var.enable_alb ? [1] : []
@@ -41,9 +43,10 @@ resource "aws_ecs_task_definition" "atelier" {
   network_mode             = "awsvpc"
   cpu                      = "256"
   memory                   = "512"
+  count                    = var.enable_backend ? 1 : 0
 
-  execution_role_arn = aws_iam_role.ecs_execution_role.arn
-  task_role_arn       = aws_iam_role.ecs_task_role.arn
+  execution_role_arn = aws_iam_role.ecs_execution_role[0].arn
+  task_role_arn      = aws_iam_role.ecs_task_role[0].arn
 
   container_definitions = jsonencode([
     {
@@ -57,7 +60,7 @@ resource "aws_ecs_task_definition" "atelier" {
 
       environment = [
         { name = "SPRING_PROFILES_ACTIVE", value = "prod" },
-        { name = "DB_HOST", value = aws_db_instance.atelier.address },
+        { name = "DB_HOST", value = aws_db_instance.atelier[0].address },
         { name = "DB_USERNAME", value = var.db_username },
         { name = "GOOGLE_CLIENT_ID", value = var.google_client_id },
         { name = "APP_FRONTEND_URL", value = var.frontend_url },
@@ -67,14 +70,14 @@ resource "aws_ecs_task_definition" "atelier" {
       ]
 
       secrets = [
-        { name = "DB_PASSWORD", valueFrom = aws_secretsmanager_secret.db_password.arn },
-        { name = "GOOGLE_CLIENT_SECRET", valueFrom = aws_secretsmanager_secret.google_client_secret.arn }
+        { name = "DB_PASSWORD", valueFrom = aws_secretsmanager_secret.db_password[0].arn },
+        { name = "GOOGLE_CLIENT_SECRET", valueFrom = aws_secretsmanager_secret.google_client_secret[0].arn }
       ]
 
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          "awslogs-group"         = aws_cloudwatch_log_group.atelier.name
+          "awslogs-group"         = aws_cloudwatch_log_group.atelier[0].name
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "backend"
         }
@@ -86,19 +89,21 @@ resource "aws_ecs_task_definition" "atelier" {
 resource "aws_cloudwatch_log_group" "atelier" {
   name              = "/ecs/${var.name_prefix}"
   retention_in_days = 7
+  count             = var.enable_backend ? 1 : 0
 }
 
 resource "aws_ecs_service" "atelier" {
-  name            = "${var.name_prefix}-service"
-  cluster         = aws_ecs_cluster.atelier.id
-  task_definition = aws_ecs_task_definition.atelier.arn
-  desired_count   = var.ecs_desired_count
-  launch_type     = "FARGATE"
+  name                              = "${var.name_prefix}-service"
+  cluster                           = aws_ecs_cluster.atelier[0].id
+  task_definition                   = aws_ecs_task_definition.atelier[0].arn
+  desired_count                     = var.ecs_desired_count
+  launch_type                       = "FARGATE"
   health_check_grace_period_seconds = 150
+  count                             = var.enable_backend ? 1 : 0
 
   network_configuration {
     subnets          = data.aws_subnets.default.ids
-    security_groups  = [aws_security_group.ecs_tasks.id]
+    security_groups  = [aws_security_group.ecs_tasks[0].id]
     assign_public_ip = true
   }
 
@@ -106,8 +111,8 @@ resource "aws_ecs_service" "atelier" {
     for_each = var.enable_alb ? [1] : []
     content {
       target_group_arn = aws_lb_target_group.atelier[0].arn
-      container_name    = "atelier-backend"
-      container_port    = 8080
+      container_name   = "atelier-backend"
+      container_port   = 8080
     }
   }
 

@@ -1,4 +1,5 @@
 resource "aws_security_group" "rds" {
+  count       = var.enable_backend ? 1 : 0
   name        = "${var.name_prefix}-rds-sg"
   description = "Allow Postgres access from ECS tasks"
   vpc_id      = data.aws_vpc.default.id
@@ -7,7 +8,7 @@ resource "aws_security_group" "rds" {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_tasks.id]
+    security_groups = [aws_security_group.ecs_tasks[0].id]
   }
 
   egress {
@@ -19,6 +20,7 @@ resource "aws_security_group" "rds" {
 }
 
 resource "aws_db_subnet_group" "atelier" {
+  count      = var.enable_backend ? 1 : 0
   name       = "${var.name_prefix}-db-subnet-group"
   subnet_ids = data.aws_subnets.default.ids
 }
@@ -28,6 +30,7 @@ resource "aws_db_instance" "atelier" {
   engine         = "postgres"
   engine_version = "16.14"
   instance_class = var.db_instance_class
+  count          = var.enable_backend ? 1 : 0
 
   allocated_storage = 20
   storage_type      = "gp3"
@@ -36,8 +39,8 @@ resource "aws_db_instance" "atelier" {
   username = var.db_username
   password = var.db_password
 
-  db_subnet_group_name   = aws_db_subnet_group.atelier.name
-  vpc_security_group_ids = [aws_security_group.rds.id]
+  db_subnet_group_name   = aws_db_subnet_group.atelier[0].name
+  vpc_security_group_ids = [aws_security_group.rds[0].id]
 
   publicly_accessible = false
 

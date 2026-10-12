@@ -1,5 +1,6 @@
 resource "aws_iam_role" "ecs_task_role" {
-  name = "${var.name_prefix}-ecs-task-role"
+  count = var.enable_backend ? 1 : 0
+  name  = "${var.name_prefix}-ecs-task-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -14,8 +15,9 @@ resource "aws_iam_role" "ecs_task_role" {
 }
 
 resource "aws_iam_role_policy" "s3_access" {
-  name = "${var.name_prefix}-s3-access"
-  role = aws_iam_role.ecs_task_role.id
+  count = var.enable_backend ? 1 : 0
+  name  = "${var.name_prefix}-s3-access"
+  role  = aws_iam_role.ecs_task_role[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -32,7 +34,8 @@ resource "aws_iam_role_policy" "s3_access" {
 # ecs_task_role — used by your application code to call AWS APIs (S3). This is
 # where DefaultCredentialsProvider picks up.
 resource "aws_iam_role" "ecs_execution_role" {
-  name = "${var.name_prefix}-ecs-execution-role"
+  count = var.enable_backend ? 1 : 0
+  name  = "${var.name_prefix}-ecs-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -47,13 +50,15 @@ resource "aws_iam_role" "ecs_execution_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_execution" {
-  role       = aws_iam_role.ecs_execution_role.name
+  role       = aws_iam_role.ecs_execution_role[0].name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+  count      = var.enable_backend ? 1 : 0
 }
 
 resource "aws_iam_role_policy" "secrets_access" {
-  name = "${var.name_prefix}-secrets-access"
-  role = aws_iam_role.ecs_execution_role.id
+  count = var.enable_backend ? 1 : 0
+  name  = "${var.name_prefix}-secrets-access"
+  role  = aws_iam_role.ecs_execution_role[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -61,9 +66,10 @@ resource "aws_iam_role_policy" "secrets_access" {
       Effect = "Allow"
       Action = ["secretsmanager:GetSecretValue"]
       Resource = [
-        aws_secretsmanager_secret.db_password.arn,
-        aws_secretsmanager_secret.google_client_secret.arn
+        aws_secretsmanager_secret.db_password[0].arn,
+        aws_secretsmanager_secret.google_client_secret[0].arn
       ]
     }]
   })
 }
+

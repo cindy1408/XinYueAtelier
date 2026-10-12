@@ -79,7 +79,9 @@ module "atelier" {
   rds_skip_final_snapshot     = false
   rds_backup_retention_period = 7
 
-  enable_alb        = true
+  enable_backend    = false
+  enable_alb        = false
   api_domain_name   = "api.xyatelier.com"
   route53_zone_name = "xyatelier.com"
 }
+
