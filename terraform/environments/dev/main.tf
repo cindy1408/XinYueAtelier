@@ -35,6 +35,7 @@ module "atelier" {
   db_password          = var.db_password
   google_client_id     = var.google_client_id
   google_client_secret = var.google_client_secret
+  allowed_google_email = var.allowed_google_email
 
   s3_bucket_name       = var.s3_bucket_name
   frontend_bucket_name = var.frontend_bucket_name

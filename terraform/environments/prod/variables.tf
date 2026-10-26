@@ -18,6 +18,11 @@ variable "google_client_secret" {
   sensitive = true
 }
 
+variable "allowed_google_email" {
+  description = "Google account email permitted to use this personal instance."
+  type        = string
+}
+
 variable "s3_bucket_name" {
   description = "must be globally unique"
 }

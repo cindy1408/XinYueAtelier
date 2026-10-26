@@ -1,164 +1,131 @@
 package com.xinyue.atelier.controller;
 
-import com.xinyue.atelier.GarmentType;
-import com.xinyue.atelier.Level;
-import com.xinyue.atelier.PatternOrigin;
-import com.xinyue.atelier.dto.FolderDto;
-import com.xinyue.atelier.model.User;
-import com.xinyue.atelier.service.FolderService;
-import com.xinyue.atelier.service.UserService;
-import org.junit.jupiter.api.BeforeEach;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import com.xinyue.atelier.GarmentType;
+import com.xinyue.atelier.Level;
+import com.xinyue.atelier.PatternOrigin;
+import com.xinyue.atelier.dto.FolderDto;
+import com.xinyue.atelier.dto.UserDto;
+import com.xinyue.atelier.model.User;
+import com.xinyue.atelier.service.FolderService;
+import com.xinyue.atelier.service.UserService;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+class UserInterviewTests {
 
-@ExtendWith(MockitoExtension.class)
-class UserControllerTest {
-    private FolderController folderController;
+    private static final User USER = new User();
 
-    @Mock
-    private FolderService folderService;
+    static {
+        USER.setId(1L);
+        USER.setEmail("cindy@example.com");
+        USER.setName("Cindy");
+        USER.setRole("ROLE_USER");
+        USER.setCreatedAt(LocalDateTime.of(2026, 1, 1, 9, 0));
+    }
 
-    @Mock
-    private UserService userService;
+    private static final MockMultipartFile IMAGE =
+            new MockMultipartFile("image", "photo.png", "image/png", "fake-image-bytes".getBytes());
 
-    @Mock
-    private OAuth2User oauthUser;
+    private final UserService userService = mock(UserService.class);
+    private final FolderService folderService = mock(FolderService.class);
+    private final OAuth2User oauthUser = mock(OAuth2User.class);
+    private final UserController userController = new UserController(userService);
+    private final FolderController folderController = new FolderController(folderService);
 
-    private UserController userController;
-
-    @BeforeEach
-    void setUp() {
-        userController = new UserController(userService);
-        folderController = new FolderController(folderService);
+    private static FolderDto folder(int ref, String title) {
+        return new FolderDto(UUID.randomUUID(), ref, title, null,
+                PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList());
     }
 
     @Test
-    void getMe_returnsOkWithUserFieldsInBody() {
-        User user = new User();
-        user.setId(1L);
-        user.setEmail("cindy@example.com");
-        user.setName("Cindy");
-        user.setRole("ROLE_USER");
-        LocalDateTime createdAt = LocalDateTime.now();
-        user.setCreatedAt(createdAt);
+    void getMeReturnsOkWithUserFieldsInBody() {
+        when(userService.getCurrentUser(oauthUser)).thenReturn(USER);
 
-        when(userService.getCurrentUser(oauthUser)).thenReturn(user);
-
-        ResponseEntity<?> response = userController.getMe(oauthUser);
+        ResponseEntity<UserDto> response = userController.getMe(oauthUser);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> body = (Map<String, Object>) response.getBody();
-        assertThat(body).containsEntry("id", 1L);
-        assertThat(body).containsEntry("email", "cindy@example.com");
-        assertThat(body).containsEntry("name", "Cindy");
-        assertThat(body).containsEntry("role", "ROLE_USER");
-        assertThat(body).containsEntry("createdAt", createdAt);
+        assertThat(response.getBody()).isEqualTo(new UserDto(
+                USER.getId(),
+                USER.getEmail(),
+                USER.getName(),
+                USER.getRole(),
+                USER.getCreatedAt()));
     }
 
     @Test
-    void getMe_propagatesRuntimeExceptionWhenUserNotFound() {
-        when(userService.getCurrentUser(oauthUser))
-                .thenThrow(new RuntimeException("User not found"));
+    void getMeReportsAdminRoleForAdmins() {
+        USER.setRole("ROLE_ADMIN");
+        when(userService.getCurrentUser(oauthUser)).thenReturn(USER);
 
-        assertThatThrownBy(() -> userController.getMe(oauthUser))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("User not found");
-    }
+        UserDto body = userController.getMe(oauthUser).getBody();
 
-    // ---------- listFolders ----------
-
-    @Test
-    void listFolders_returnsAllRootFolders() {
-        FolderDto folder1 = new FolderDto(
-                UUID.randomUUID(), 1, "Folder One", null,
-                PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList());
-        FolderDto folder2 = new FolderDto(
-                UUID.randomUUID(), 2, "Folder Two", null,
-                PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList());
-
-        when(folderService.listRootFolders()).thenReturn(List.of(folder1, folder2));
-
-        List<FolderDto> result = folderController.listFolders();
-
-        assertThat(result).containsExactly(folder1, folder2);
-        verify(folderService).listRootFolders();
+        assertThat(body).isNotNull();
+        assertThat(body.role()).isEqualTo("ROLE_ADMIN");
     }
 
     @Test
-    void listFolders_returnsEmptyListWhenNoRootFolders() {
+    void getMePropagatesExceptionWhenUserNotFound() {
+        when(userService.getCurrentUser(oauthUser)).thenThrow(new RuntimeException("User not found"));
+
+        try {
+            userController.getMe(oauthUser);
+        } catch (RuntimeException e) {
+            assertThat(e).hasMessage("User not found");
+        }
+    }
+
+    @Test
+    void listFoldersReturnsRootFoldersOrEmptyList() {
+        FolderDto one = folder(1, "Folder One");
+        FolderDto two = folder(2, "Folder Two");
+        when(folderService.listRootFolders()).thenReturn(List.of(one, two));
+        assertThat(folderController.listFolders()).containsExactly(one, two);
+
         when(folderService.listRootFolders()).thenReturn(List.of());
-
-        List<FolderDto> result = folderController.listFolders();
-
-        assertThat(result).isEmpty();
+        assertThat(folderController.listFolders()).isEmpty();
     }
 
-// ---------- createRootFolder ----------
-
     @Test
-    void createRootFolder_returnsOkWithCreatedFolder() {
-        MockMultipartFile image = new MockMultipartFile(
-                "image", "photo.png", "image/png", "fake-image-bytes".getBytes());
-
-        FolderDto dto = new FolderDto(
-                UUID.randomUUID(), 1, "My Folder", "folders/x/image.png",
-                PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList());
-
-        when(folderService.createFolder(1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", image, null))
+    void createRootFolderReturnsOkAndPassesNullParentId() {
+        FolderDto dto = folder(1, "My Folder");
+        when(folderService.createFolder(1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", IMAGE, null))
                 .thenReturn(dto);
 
-        ResponseEntity<FolderDto> response = folderController.createRootFolder(
-                1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", image);
+        ResponseEntity<FolderDto> response =
+                folderController.createRootFolder(1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", IMAGE);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(dto);
-    }
-
-    @Test
-    void createRootFolder_passesNullParentId() {
-        MockMultipartFile image = new MockMultipartFile(
-                "image", "photo.png", "image/png", "fake-image-bytes".getBytes());
-
-        when(folderService.createFolder(any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(mock(FolderDto.class));
-
-        folderController.createRootFolder(1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", image);
-
         verify(folderService).createFolder(
-                eq(1), eq("My Folder"), eq("COURSE"), eq("DRAFTED"), eq("BEGINNER"), eq(image), isNull());
+                eq(1), eq("My Folder"), eq("COURSE"), eq("DRAFTED"), eq("BEGINNER"), eq(IMAGE), isNull());
     }
 
     @Test
-    void createRootFolder_propagatesBadRequestForInvalidEnum() {
-        MockMultipartFile image = new MockMultipartFile(
-                "image", "photo.png", "image/png", "fake-image-bytes".getBytes());
-
+    void createRootFolderPropagatesBadRequestForInvalidEnum() {
         when(folderService.createFolder(any(), any(), eq("NOT_A_REAL_TYPE"), any(), any(), any(), any()))
                 .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid value for GarmentType"));
 
         assertThatThrownBy(() -> folderController.createRootFolder(
-                1, "My Folder", "NOT_A_REAL_TYPE", "DRAFTED", "BEGINNER", image))
+                1, "My Folder", "NOT_A_REAL_TYPE", "DRAFTED", "BEGINNER", IMAGE))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Invalid value for GarmentType");
     }

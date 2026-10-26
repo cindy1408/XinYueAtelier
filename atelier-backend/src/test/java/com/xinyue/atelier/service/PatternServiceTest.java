@@ -7,6 +7,7 @@ import com.xinyue.atelier.repository.PatternRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
@@ -59,7 +60,7 @@ class PatternServiceTest {
         assertThat(result.getTitle()).isEqualTo("My Pattern");
         assertThat(result.getFolder()).isEqualTo(folder);
         assertThat(result.getPdfPath())
-                .isEqualTo("patterns/My-Folder/My-Pattern.pdf");
+                .matches("patterns/[0-9a-f-]{36}/My-Pattern\\.pdf");
     }
 
     @Test
@@ -76,7 +77,9 @@ class PatternServiceTest {
 
         Pattern result = patternService.create("A Title: With Spaces & Symbols!", pdf, folderId);
 
-        verify(storageService).upload(eq("patterns/My-Weird-Folder/A-Title-With-Spaces-Symbols.pdf"), any(),
+        verify(storageService).upload(
+                argThat(key -> key.matches("patterns/[0-9a-f-]{36}/A-Title-With-Spaces-Symbols\\.pdf")),
+                any(),
                 eq("application/pdf"));
 
         verify(patternRepo).save(any(Pattern.class));
@@ -129,7 +132,7 @@ class PatternServiceTest {
 
         Pattern result = patternService.create("Title", pdf, folderId);
 
-        assertThat(result.getPdfPath()).isEqualTo("patterns/Folder/Title.PDF");
+        assertThat(result.getPdfPath()).matches("patterns/[0-9a-f-]{36}/Title\\.PDF");
     }
 
     @Test
@@ -146,7 +149,24 @@ class PatternServiceTest {
 
         Pattern result = patternService.create("Title   With   Gaps", pdf, folderId);
 
-        assertThat(result.getPdfPath()).isEqualTo("patterns/Folder/Title-With-Gaps.pdf");
+        assertThat(result.getPdfPath()).matches("patterns/[0-9a-f-]{36}/Title-With-Gaps\\.pdf");
+    }
+
+    @Test
+    void create_usesUniqueKeysForPatternsWithTheSameTitle() {
+        UUID folderId = UUID.randomUUID();
+        Folder folder = new Folder();
+        folder.setFolderName("Folder");
+        MockMultipartFile pdf = new MockMultipartFile(
+                "pdf", "pattern.pdf", "application/pdf", "fake-pdf-bytes".getBytes());
+
+        when(folderRepo.findById(folderId)).thenReturn(Optional.of(folder));
+        when(patternRepo.save(any(Pattern.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Pattern first = patternService.create("Duplicate", pdf, folderId);
+        Pattern second = patternService.create("Duplicate", pdf, folderId);
+
+        assertThat(first.getPdfPath()).isNotEqualTo(second.getPdfPath());
     }
 
     // ---------- delete ----------
@@ -161,7 +181,7 @@ class PatternServiceTest {
 
         patternService.delete(patternId);
 
-        verify(storageService).delete("patterns/folder/title.pdf");
+        verify(storageService).deleteAfterCommit(List.of("patterns/folder/title.pdf"));
 
         verify(patternRepo).delete(pattern);
     }
@@ -246,6 +266,25 @@ class PatternServiceTest {
                 .hasMessageContaining("Pattern not found");
 
         verifyNoInteractions(storageService);
+    }
+
+    @Test
+    void create_removesUploadedObjectWhenDatabaseSaveFails() {
+        UUID folderId = UUID.randomUUID();
+        Folder folder = new Folder();
+        folder.setFolderName("Folder");
+        MockMultipartFile pdf = new MockMultipartFile(
+                "pdf", "pattern.pdf", "application/pdf", "fake-pdf-bytes".getBytes());
+        when(folderRepo.findById(folderId)).thenReturn(Optional.of(folder));
+        when(patternRepo.save(any(Pattern.class))).thenThrow(new RuntimeException("database unavailable"));
+
+        assertThatThrownBy(() -> patternService.create("Title", pdf, folderId))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("database unavailable");
+
+        ArgumentCaptor<String> keyCaptor = ArgumentCaptor.forClass(String.class);
+        verify(storageService).upload(keyCaptor.capture(), any(), eq("application/pdf"));
+        verify(storageService).deleteAfterFailedWrite(eq(keyCaptor.getValue()), any(RuntimeException.class));
     }
 
 

@@ -82,3 +82,12 @@ tfplan
 atelier-frontend/dist/
 atelier-frontend/dist-prod/
 atelier-frontend/coverage/
+!*.tfvars.example
+.terraform/
+application-secrets.properties
+target/
+dist/
+dist-prod/
+coverage/
+.idea/
+__MACOSX/

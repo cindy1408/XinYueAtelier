@@ -63,6 +63,7 @@ resource "aws_ecs_task_definition" "atelier" {
         { name = "DB_HOST", value = aws_db_instance.atelier[0].address },
         { name = "DB_USERNAME", value = var.db_username },
         { name = "GOOGLE_CLIENT_ID", value = var.google_client_id },
+        { name = "ALLOWED_GOOGLE_EMAIL", value = var.allowed_google_email },
         { name = "APP_FRONTEND_URL", value = var.frontend_url },
         { name = "S3_BUCKET", value = aws_s3_bucket.atelier.bucket },
         { name = "GOOGLE_REDIRECT_URI", value = "https://api.xyatelier.com/login/oauth2/code/google" },

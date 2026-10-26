@@ -1,238 +1,142 @@
 package com.xinyue.atelier.controller;
 
-import com.xinyue.atelier.dto.FolderDto;
-import com.xinyue.atelier.GarmentType;
-import com.xinyue.atelier.Level;
-import com.xinyue.atelier.PatternOrigin;
-import com.xinyue.atelier.service.FolderService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.server.ResponseStatusException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
-@ExtendWith(MockitoExtension.class)
+import com.xinyue.atelier.GarmentType;
+import com.xinyue.atelier.Level;
+import com.xinyue.atelier.PatternOrigin;
+import com.xinyue.atelier.dto.FolderDto;
+import com.xinyue.atelier.service.FolderService;
+
 class FolderControllerTest {
 
-    @Mock
-    private FolderService folderService;
+    private static final MockMultipartFile IMAGE =
+            new MockMultipartFile("image", "photo.png", "image/png", "fake-image-bytes".getBytes());
 
-    private FolderController folderController;
+    private final FolderService service = mock(FolderService.class);
+    private final FolderController controller = new FolderController(service);
 
-    @BeforeEach
-    void setUp() {
-        folderController = new FolderController(folderService);
-    }
-
-    // ---------- getFolderChildren ----------
-
-    @Test
-    void getFolderChildren_returnsChildrenForParent() {
-        UUID parentId = UUID.randomUUID();
-        FolderDto child = new FolderDto(
-                UUID.randomUUID(), 1, "Child", null,
+    private static FolderDto folder(UUID id) {
+        return new FolderDto(id, 1, "My Folder", null,
                 PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList());
-
-        when(folderService.getFolderChildrenById(parentId)).thenReturn(List.of(child));
-
-        List<FolderDto> result = folderController.getFolderChildren(parentId);
-
-        assertThat(result).containsExactly(child);
-        verify(folderService).getFolderChildrenById(parentId);
     }
 
     @Test
-    void getFolderChildren_returnsEmptyListWhenNoChildren() {
+    void getFolderChildrenReturnsChildrenOrEmptyList() {
         UUID parentId = UUID.randomUUID();
-        when(folderService.getFolderChildrenById(parentId)).thenReturn(List.of());
+        UUID emptyParentId = UUID.randomUUID();
+        FolderDto child = folder(UUID.randomUUID());
+        when(service.getFolderChildrenById(parentId)).thenReturn(List.of(child));
+        when(service.getFolderChildrenById(emptyParentId)).thenReturn(List.of());
 
-        List<FolderDto> result = folderController.getFolderChildren(parentId);
-
-        assertThat(result).isEmpty();
+        assertThat(controller.getFolderChildren(parentId)).containsExactly(child);
+        assertThat(controller.getFolderChildren(emptyParentId)).isEmpty();
     }
 
-    // ---------- getFolderById ----------
-
+    /**
+     * Returning Optional straight from a controller means Spring serialises Optional.empty()
+     * as a null body with HTTP 200, not a 404, so callers can't tell "not found" from "empty".
+     */
     @Test
-    void getFolderById_returnsPresentOptionalWhenFolderExists() {
-        UUID folderId = UUID.randomUUID();
-        FolderDto dto = new FolderDto(
-                folderId, 1, "My Folder", null,
-                PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList());
+    void getFolderByIdReturnsOptionalAsIs() {
+        UUID id = UUID.randomUUID();
+        UUID missingId = UUID.randomUUID();
+        FolderDto dto = folder(id);
+        when(service.getFolderById(id)).thenReturn(Optional.of(dto));
+        when(service.getFolderById(missingId)).thenReturn(Optional.empty());
 
-        when(folderService.getFolderById(folderId)).thenReturn(Optional.of(dto));
-
-        Optional<FolderDto> result = folderController.getFolderById(folderId);
-
-        assertThat(result).contains(dto);
+        assertThat(controller.getFolderById(id)).contains(dto);
+        assertThat(controller.getFolderById(missingId)).isEmpty();
     }
 
+    /** Documents the current contract: child folders always get null ref, garmentType, origin and level. */
     @Test
-    void getFolderById_returnsEmptyOptionalWhenFolderDoesNotExist() {
-        UUID folderId = UUID.randomUUID();
-        when(folderService.getFolderById(folderId)).thenReturn(Optional.empty());
-
-        Optional<FolderDto> result = folderController.getFolderById(folderId);
-
-        // NOTE: returning Optional directly from a controller means Spring
-        // serializes Optional.empty() as `null` with an HTTP 200 status,
-        // not a 404. A caller can't distinguish "folder not found" from
-        // "found a folder with no useful content" without inspecting the
-        // body. See note below.
-        assertThat(result).isEmpty();
-    }
-
-    // ---------- createChildFolder ----------
-
-    @Test
-    void createChildFolder_returnsOkWithCreatedFolder() {
+    void createChildFolderReturnsOkAndPassesNullMetadata() {
         UUID parentId = UUID.randomUUID();
-        MockMultipartFile image = new MockMultipartFile(
-                "image", "photo.png", "image/png", "fake-image-bytes".getBytes());
-
-        FolderDto dto = new FolderDto(
-                UUID.randomUUID(), null, "Child Folder", "folders/x/image.png",
+        FolderDto dto = new FolderDto(UUID.randomUUID(), null, "Child Folder", "folders/x/image.png",
                 null, null, null, Collections.emptyList());
-
-        when(folderService.createFolder(isNull(), eq("Child Folder"), isNull(), isNull(), isNull(), eq(image), eq(parentId)))
+        when(service.createFolder(isNull(), eq("Child Folder"), isNull(), isNull(), isNull(), eq(IMAGE), eq(parentId)))
                 .thenReturn(dto);
 
-        ResponseEntity<FolderDto> response = folderController.createChildFolder(parentId, "Child Folder", image);
+        ResponseEntity<FolderDto> response = controller.createChildFolder(parentId, "Child Folder", IMAGE);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo(dto);
+        verify(service).createFolder(isNull(), eq("Child Folder"), isNull(), isNull(), isNull(), eq(IMAGE), eq(parentId));
     }
 
     @Test
-    void createChildFolder_passesNullForRefGarmentTypeOriginAndLevel() {
+    void createChildFolderPropagatesNotFoundWhenParentIsMissing() {
         UUID parentId = UUID.randomUUID();
-        MockMultipartFile image = new MockMultipartFile(
-                "image", "photo.png", "image/png", "fake-image-bytes".getBytes());
-
-        when(folderService.createFolder(any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(mock(FolderDto.class));
-
-        folderController.createChildFolder(parentId, "Child Folder", image);
-
-        // Documents the current contract: a child folder created through
-        // this endpoint always gets null ref/garmentType/origin/level,
-        // regardless of what the caller might want to set. Worth confirming
-        // this is intentional and not a missing set of @RequestParams.
-        verify(folderService).createFolder(
-                isNull(), eq("Child Folder"), isNull(), isNull(), isNull(), eq(image), eq(parentId));
-    }
-
-    @Test
-    void createChildFolder_propagatesNotFoundWhenParentDoesNotExist() {
-        UUID parentId = UUID.randomUUID();
-        MockMultipartFile image = new MockMultipartFile(
-                "image", "photo.png", "image/png", "fake-image-bytes".getBytes());
-
-        when(folderService.createFolder(any(), any(), any(), any(), any(), any(), eq(parentId)))
+        when(service.createFolder(any(), any(), any(), any(), any(), any(), eq(parentId)))
                 .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent folder not found"));
 
-        assertThatThrownBy(() -> folderController.createChildFolder(parentId, "Child Folder", image))
+        assertThatThrownBy(() -> controller.createChildFolder(parentId, "Child Folder", IMAGE))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Parent folder not found");
     }
 
-    // ---------- updateFolder ----------
-
     @Test
-    void updateFolder_returnsUpdatedFolder() {
-        UUID folderId = UUID.randomUUID();
-        MockMultipartFile image = new MockMultipartFile(
-                "image", "new.png", "image/png", "fake-image-bytes".getBytes());
-
-        FolderDto dto = new FolderDto(
-                folderId, 2, "Updated Folder", "folders/x/new.png",
+    void updateFolderReturnsUpdatedFolderWithOrWithoutImage() {
+        UUID id = UUID.randomUUID();
+        FolderDto withImage = new FolderDto(id, 2, "Updated Folder", "folders/x/new.png",
                 PatternOrigin.ACQUIRED, Level.INTERMEDIATE, GarmentType.DRESS, Collections.emptyList());
+        FolderDto withoutImage = folder(id);
+        when(service.updateFolder(id, 2, "Updated Folder", "DRESS", "ACQUIRED", "INTERMEDIATE", IMAGE))
+                .thenReturn(withImage);
+        when(service.updateFolder(id, 1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", null))
+                .thenReturn(withoutImage);
 
-        when(folderService.updateFolder(folderId, 2, "Updated Folder", "DRESS", "ACQUIRED", "INTERMEDIATE", image))
-                .thenReturn(dto);
-
-        FolderDto result = folderController.updateFolder(
-                folderId, 2, "Updated Folder", "DRESS", "ACQUIRED", "INTERMEDIATE", image);
-
-        assertThat(result).isEqualTo(dto);
+        assertThat(controller.updateFolder(id, 2, "Updated Folder", "DRESS", "ACQUIRED", "INTERMEDIATE", IMAGE))
+                .isEqualTo(withImage);
+        assertThat(controller.updateFolder(id, 1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", null))
+                .isEqualTo(withoutImage);
     }
 
     @Test
-    void updateFolder_worksWithNullImage() {
-        UUID folderId = UUID.randomUUID();
-        FolderDto dto = new FolderDto(
-                folderId, 1, "My Folder", null,
-                PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList());
+    void updateFolderPropagatesServiceErrors() {
+        UUID id = UUID.randomUUID();
+        for (HttpStatus status : new HttpStatus[] { HttpStatus.NOT_FOUND, HttpStatus.BAD_REQUEST }) {
+            doThrow(new ResponseStatusException(status, "boom")).when(service)
+                    .updateFolder(eq(id), any(), any(), any(), any(), any(), any());
 
-        when(folderService.updateFolder(folderId, 1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", null))
-                .thenReturn(dto);
-
-        FolderDto result = folderController.updateFolder(
-                folderId, 1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", null);
-
-        assertThat(result).isEqualTo(dto);
+            assertThatThrownBy(() -> controller.updateFolder(id, 1, "Title", "NOT_A_REAL_TYPE", "DRAFTED", "BEGINNER", null))
+                    .as("should propagate %s", status)
+                    .isInstanceOfSatisfying(ResponseStatusException.class,
+                            e -> assertThat(e.getStatusCode()).isEqualTo(status));
+        }
     }
 
     @Test
-    void updateFolder_propagatesNotFoundWhenFolderDoesNotExist() {
-        UUID folderId = UUID.randomUUID();
+    void deleteFolderCallsServiceAndPropagatesNotFound() throws Exception {
+        UUID id = UUID.randomUUID();
+        controller.deleteFolder(id);
+        verify(service).deleteFolder(id);
 
-        when(folderService.updateFolder(eq(folderId), any(), any(), any(), any(), any(), any()))
-                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
-
-        assertThatThrownBy(() -> folderController.updateFolder(
-                folderId, 1, "Title", "COURSE", "DRAFTED", "BEGINNER", null))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("Folder not found");
-    }
-
-    @Test
-    void updateFolder_propagatesBadRequestForInvalidEnum() {
-        UUID folderId = UUID.randomUUID();
-
-        when(folderService.updateFolder(eq(folderId), any(), any(), eq("NOT_A_REAL_TYPE"), any(), any(), any()))
-                .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid value for GarmentType"));
-
-        assertThatThrownBy(() -> folderController.updateFolder(
-                folderId, 1, "Title", "NOT_A_REAL_TYPE", "DRAFTED", "BEGINNER", null))
-                .isInstanceOf(ResponseStatusException.class)
-                .hasMessageContaining("Invalid value for GarmentType");
-    }
-
-    // ---------- deleteFolder ----------
-
-    @Test
-    void deleteFolder_callsServiceDeleteWithCorrectId() throws Exception {
-        UUID folderId = UUID.randomUUID();
-
-        folderController.deleteFolder(folderId);
-
-        verify(folderService).deleteFolder(folderId);
-    }
-
-    @Test
-    void deleteFolder_propagatesNotFoundFromService() {
-        UUID folderId = UUID.randomUUID();
+        UUID missingId = UUID.randomUUID();
         doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"))
-                .when(folderService).deleteFolder(folderId);
+                .when(service).deleteFolder(missingId);
 
-        assertThatThrownBy(() -> folderController.deleteFolder(folderId))
+        assertThatThrownBy(() -> controller.deleteFolder(missingId))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Folder not found");
     }

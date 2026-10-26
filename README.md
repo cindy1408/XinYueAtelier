@@ -1,58 +1,135 @@
 # XinYue Atelier
-XinYue Atelier is a full-stack sewing pattern library. Users authenticate with Google, organise patterns in a hierarchy of folders, upload PDF files to S3, and download or preview those files through presigned URLs.
 
-## Project Status
+A full-stack sewing pattern library. Sign in with Google, organise patterns in nested folders, upload PDFs, and preview or download them from anywhere.
 
-### Implemented
+**Stack:** React 19 + Vite · Spring Boot 3.5 (Java 25) · PostgreSQL 16 + Flyway · S3 for files · Google OAuth2 + server-side sessions · Terraform on AWS
 
-- React/Vite frontend with login, protected routes, folder navigation, folder creation/editing/deletion, and pattern upload/delete/preview flows.
-- Spring Boot backend with Google OAuth2 login, authenticated sessions/JWT API requests, CORS configuration, folder and pattern APIs, validation, and an actuator health endpoint.
-- PostgreSQL persistence with Flyway migrations for users, folders, and patterns.
-- S3-backed PDF storage and presigned preview/download URLs.
-- Docker Compose development environment containing PostgreSQL, Spring Boot, LocalStack S3, and an Nginx-served frontend.
-- Terraform resources for an AWS production foundation: ECR, ECS Fargate, RDS PostgreSQL, S3, Secrets Manager, IAM, CloudWatch logs, an HTTPS ALB, ACM certificate validation, and Route 53 API DNS.
-- Backend and frontend unit/controller/service tests, Checkstyle, ESLint, JaCoCo, and frontend coverage scripts.
+---
 
-### Still needed or worth checking
+## Where we're at
 
-- Rotate credentials in local or historical `application-secrets.properties` file. use environment variables or AWS Secrets Manager.
-- Add a Terraform-managed frontend hosting path. The current Terraform directory provisions the backend API infrastructure, not the frontend bucket or CloudFront distribution.
-- Add a production deployment pipeline. At present, the backend image push and frontend publish are manual.
-- Use private subnets/NAT or VPC endpoints for production instead of relying on public Fargate IPs. The current ECS service uses the default VPC subnets and `assign_public_ip = true`.
-- Add database backups, deletion protection, tighter IAM policies, monitoring/alerts, and a production rollback strategy before treating the deployment as production-ready.
-- Run the full CI checks after the current uncommitted backend and Terraform changes are settled.
+| Area | State |
+|---|---|
+| App features (login, folders, PDF upload/preview/download/delete) | Done |
+| Local dev (Docker Compose + LocalStack) | Done |
+| Prod on AWS (ECS Fargate, RDS, ALB, ACM, Route 53, S3, Secrets Manager) | Live, but costs roughly £50/month |
+| Tests and checks (`make ci`: Checkstyle, JaCoCo, ESLint, Vitest) | Done |
+| Terraform for backend infra | Done (separate `dev` and `prod` environments) |
+| Frontend hosting (S3 + CloudFront + Route 53) | Done in Terraform (`environments/prod`). The WAF web ACL and the CloudFront ACM certificate were created by hand and are referenced by ARN |
+| CI/CD pipeline | Not yet. Deploys are manual scripts |
+| Cheaper personal deployment (single host) | **Planned**, see below |
+
+### Current priority
+
+Cut the running cost of my personal copy. The app is fine; the infrastructure is sized for many users and I'm the only one using it.
+
+### Where the money goes (estimates, check current AWS pricing)
+
+| Component | Approx. monthly |
+|---|---|
+| ECS Fargate (1 task) | $15–30 |
+| RDS PostgreSQL (small instance) | $10–15 |
+| Application Load Balancer | ~$16 |
+| S3 storage | ~$0.02–0.03 per GB, so pennies for personal use |
+| CloudFront WAF web ACL (created by hand) | ~$5+ |
+| Misc (CloudWatch, etc.) | $5–10 |
+
+S3 is not the cost problem. Compute, the database and the load balancer are.
+
+---
+
+## Two deployment profiles
+
+The same app code supports both. Only the infrastructure differs.
+
+### A. AWS ECS reference architecture (current prod)
+
+Production-style setup: managed, highly available, scalable in principle.
+
+- Backend on ECS Fargate behind an ALB with ACM-managed HTTPS
+- RDS Postgres with deletion protection (prod)
+- Files in S3, served via presigned URLs
+- Separate ephemeral `dev` environment that can be created and destroyed on demand
+- Kept as a reference and demo. It can be brought up again with `terraform apply` when needed.
+
+### B. Single host (planned, for personal use)
+
+One small server running the same stack with Docker Compose.
+
+- App, Postgres and a reverse proxy (e.g. Caddy for automatic HTTPS) on one box
+- Files stay in S3 (cheap)
+- Target cost: roughly £5–12/month
+
+**Trade-offs accepted:** no managed DB backups (replace with scheduled `pg_dump` to S3), brief downtime on deploys, single point of failure, and OS patching is my job. On a non-AWS host there is no task role, so S3 access needs a tightly scoped IAM user. An EC2 instance with an instance role avoids that.
+
+---
+
+## Next steps
+
+Moving the personal copy to a single host:
+
+- [ ] Tag the current commit `aws-ecs-reference` so the AWS version is frozen as-is
+- [ ] Choose the host (EC2 with instance role vs a budget VPS)
+- [ ] Add a production Compose file and reverse-proxy config (backend, Postgres, proxy)
+- [ ] Add nightly `pg_dump` to S3 and **test a restore**
+- [ ] Dump the RDS database and restore it on the new host; check folders and patterns load
+- [ ] Confirm the S3 bucket and presigned URLs work from the new host
+- [ ] Update Google OAuth redirect URIs if the API domain or host changes
+- [ ] Lower DNS TTL, then repoint the API record in Route 53 to the new host
+- [ ] Take a final RDS snapshot, disable deletion protection, and destroy the ECS/ALB/RDS resources
+- [ ] Move the current Terraform into `infra/aws-ecs/` and add `infra/single-host/`
+
+Later, as time allows:
+
+- [ ] Bring the WAF and CloudFront certificate under Terraform, and move bootstrap resources (state bucket, lock table, ECR) into their own stack
+- [ ] Add a deploy pipeline (e.g. GitHub Actions)
+- [ ] Add backups/alerts to whichever profile is live
+- [ ] Optional: store files in the user's own Google Drive instead of S3
+
+---
+
+## Known gaps in the AWS profile
+
+These are the honest reasons it is "production-style", not fully production-grade:
+
+- Fargate tasks use public IPs on the default VPC (no private subnets/NAT or VPC endpoints)
+- Single task, no autoscaling. Sessions are in memory, so running more than one task needs sticky sessions or a shared session store (e.g. Spring Session)
+- Cookie auth uses server-side sessions, CSRF tokens on unsafe requests, and `Secure; SameSite=Lax` in production
+- Uploads are read fully into memory (`byte[]`) before going to S3, so memory use scales with file size (max 50 MB)
+- Task size is 0.25 vCPU / 512 MB for a Java 25 app, which is tight
+- ALB uses the old `ELBSecurityPolicy-2016-08` TLS policy
+- Debug logging for Spring Security is on in prod
+- Some values are hard-coded in the module (CORS origins, OAuth redirect URI, CloudFront aliases), so a second environment on another domain needs them parameterised
+- Manual deploys, no pipeline
+- No monitoring or alarms
+- Database backup and restore process not rehearsed
+- IAM policies could be tighter
+
+---
 
 ## Architecture
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 19, Vite, Nginx |
+| Frontend | React 19, Vite, served via Nginx (local) / S3 + CloudFront (prod) |
 | Backend | Java 25, Spring Boot 3.5 |
 | Database | PostgreSQL 16, JPA, Flyway |
-| File storage | AWS S3 or LocalStack S3 locally |
-| Authentication | Google OAuth2 with authenticated sessions/JWT API requests |
+| File storage | S3 (LocalStack locally) |
+| Auth | Google OAuth2 login; server-side session cookie (`JSESSIONID`, `Secure`, `SameSite=Lax` in prod). Users are linked by the Google `sub` claim. Sessions are held in memory |
 | Local orchestration | Docker Compose |
-| Production | ECS Fargate, RDS, ALB, ACM, Route 53, ECR |
+| Prod infra | Terraform (ECS Fargate, RDS, ALB, ACM, Route 53, ECR, Secrets Manager, IAM, CloudWatch) |
 
-## Prerequisites
+---
 
-- Docker Desktop with Compose
-- Java 25 and Maven, only if running the backend outside Docker
-- Node.js and npm, only if running the frontend outside Docker
-- An AWS account and AWS CLI for production
-- A Google OAuth application
-- Terraform, version compatible with the AWS provider 5.x
+## Local development
 
-## Local Development
-
-### 1. Configure local secrets
-
-Create `.env` in the repository root. The values below are examples; keep the file private.
+### 1. Create `.env` in the repo root
 
 ```dotenv
 JWT_SECRET=replace-with-a-long-random-value
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
+ALLOWED_GOOGLE_EMAIL=you@example.com
 GOOGLE_REDIRECT_URI=http://localhost:8080/login/oauth2/code/google
 APP_FRONTEND_URL=http://localhost:5173
 S3_BUCKET=xin-yue-atelier
@@ -62,277 +139,93 @@ AWS_REGION=eu-west-2
 VITE_API_URL=http://localhost:8080
 ```
 
-In Google Cloud Console, add this authorized redirect URI:
+In Google Cloud Console, add `http://localhost:8080/login/oauth2/code/google` as an authorised redirect URI.
+Only the Google account matching `ALLOWED_GOOGLE_EMAIL` can use this personal instance.
 
-```text
-http://localhost:8080/login/oauth2/code/google
-```
-
-The Compose file supplies the database connection to the backend. LocalStack creates the S3 bucket and applies `init/cors-config.json` when it becomes ready.
-
-### 2. Start the complete local stack
-
-From the repository root:
+### 2. Start everything
 
 ```bash
 docker compose up --build
 ```
 
-Open:
+| What | Where |
+|---|---|
+| Frontend | http://localhost:5173 |
+| Backend health | http://localhost:8080/actuator/health |
+| Postgres (from host) | `localhost:5433`, db `atelierdb`, user `atelieruser` |
+| LocalStack S3 | http://localhost:4566 |
 
-- Frontend: http://localhost:5173
-- Backend health: http://localhost:8080/actuator/health
-- PostgreSQL from the host: `localhost:5433`
-- LocalStack S3 endpoint from the host: `http://localhost:4566`
-
-Useful commands:
+Useful:
 
 ```bash
 docker compose logs -f backend
+docker compose up --build backend      # rebuild one service
 docker compose exec localstack awslocal s3 ls s3://xin-yue-atelier --recursive
-docker compose down
-docker compose down -v  # also deletes local database and LocalStack data
+docker compose down                    # stop, keep data
+docker compose down -v                 # stop and WIPE local data (careful)
 ```
 
-### Optional: run services without Docker
-
-Start PostgreSQL and LocalStack separately, then run the backend and frontend from their directories:
+### Running without Docker
 
 ```bash
-cd atelier-backend
-./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+cd atelier-backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+cd atelier-frontend && npm ci && npm run dev
 ```
 
-In another terminal:
+When running Spring Boot directly with the local profile, it connects to the Compose Postgres at `localhost:5433`. When running the backend inside Compose, the container uses `db:5432`.
+
+---
+
+## Deploying (current AWS prod)
+
+Step-by-step commands, dev environment instructions and debugging tips live in **[RUNBOOK.md](RUNBOOK.md)**. The short version:
 
 ```bash
-cd atelier-frontend
-npm ci
-npm run dev
+./deploy-backend-prod.sh     # build amd64 image, push to ECR, force new deployment, wait, health check
+./deploy-frontend-prod.sh    # build, sync to the frontend bucket, invalidate CloudFront
 ```
 
-When the backend runs directly on the host, its local profile expects PostgreSQL at `localhost:5432`; update the local database port or connection settings if your PostgreSQL is exposed on another port.
+- Always build images with `--platform linux/amd64` on Apple Silicon (the scripts already do).
+- Pushing to `:latest` alone does not redeploy; the scripts force a new deployment.
+- Infra changes: `cd terraform/environments/prod`, run `terraform plan`, read it fully, then `terraform apply`.
 
-## Production Deployment
+---
 
-The current production path deploys the API to ECS Fargate behind `https://api.xyatelier.com`. The frontend is built separately and published to the existing frontend hosting setup; frontend hosting is not currently represented in `terraform/`.
-
-### 1. Configure AWS and Google OAuth
-
-```bash
-aws configure
-aws sts get-caller-identity
-aws ec2 create-default-vpc --region eu-west-2  # only if the account has no default VPC
-```
-
-In Google Cloud Console, add:
-
-```text
-https://api.xyatelier.com/login/oauth2/code/google
-```
-
-Confirm that `xyatelier.com` is hosted in the Route 53 account used by Terraform and that the ACM DNS validation records can be created there.
-
-### 2. Bootstrap Terraform state
-
-The Terraform backend uses the S3 bucket `atelier-terraform-state` and DynamoDB table `atelier-terraform-lock`. These must exist before `terraform init` can use the backend. Create them once with the AWS CLI, or temporarily remove/comment the backend block and apply only the state bucket/table resources, then restore the backend block and initialise.
-
-The state bucket should have versioning and encryption enabled. Do not commit `terraform.tfvars` or state files.
-
-### 3. Build and push the backend image
-
-Terraform creates the ECR repository, so apply the repository first if it does not exist. From the repository root:
-
-```bash
-cd terraform
-terraform init
-terraform plan -target=aws_ecr_repository.backend
-terraform apply -target=aws_ecr_repository.backend
-ECR_REPOSITORY=$(terraform output -raw ecr_repository_url)
-cd ../atelier-backend
-aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin "$ECR_REPOSITORY"
-docker buildx build --platform linux/amd64 --load -t atelier-backend:latest .
-docker tag atelier-backend:latest "$ECR_REPOSITORY:latest"
-docker push "$ECR_REPOSITORY:latest"
-cd ../terraform
-```
-
-The `linux/amd64` image is required by the current ECS runtime image configuration.
-
-### 4. Apply the AWS infrastructure
-
-Create a private `terraform.tfvars` file with values for every required variable:
-
-```hcl
-aws_region           = "eu-west-2"
-db_username          = "atelieruser"
-db_password          = "replace-with-a-database-password"
-google_client_id     = "your-google-client-id"
-google_client_secret = "your-google-client-secret"
-s3_bucket_name       = "globally-unique-production-bucket-name"
-frontend_url         = "https://xyatelier.com"
-backend_image        = "ACCOUNT_ID.dkr.ecr.eu-west-2.amazonaws.com/atelier-backend:latest"
-ecs_desired_count    = 0
-```
-
-Then run:
-
-```bash
-terraform plan
-terraform apply
-terraform output
-```
-
-Wait for the ACM certificate to validate and the ECS service to become healthy. Verify the API through the configured DNS record:
-
-```bash
-curl -f https://api.xyatelier.com/actuator/health
-aws ecs describe-services --cluster atelier-cluster --services atelier-service --region eu-west-2
-```
-
-### 5. Build and publish the frontend
-
-The API URL is compiled into the Vite build:
-
-```bash
-cd ../atelier-frontend
-npm ci
-VITE_API_URL=https://api.xyatelier.com npm run build
-aws s3 sync dist/ s3://YOUR_FRONTEND_BUCKET --delete
-aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --paths '/*'
-```
-
-Ensure the frontend domain, API domain, and Google OAuth settings agree with `frontend_url` and the backend CORS configuration.
-
-### Stop production resources when not in use
-
-Setting the ECS desired count to zero stops Fargate tasks, but RDS and other resources continue to incur charges:
-
-```bash
-aws ecs update-service \
-	--cluster atelier-cluster \
-	--service atelier-service \
-	--desired-count 0 \
-	--region eu-west-2
-```
-
-To bring the API back:
-
-```bash
-aws ecs update-service \
-	--cluster atelier-cluster \
-	--service atelier-service \
-	--desired-count 1 \
-	--region eu-west-2
-```
-
-## Managing Production Costs
-
-AWS costs add up quickly. Here's a breakdown and strategies to minimize spend while developing:
-
-### Cost Breakdown
-
-| Component | Est. Monthly Cost | Notes |
-|---|---|---|
-| ECS Fargate (1 task, always running) | $15–30 | Largest variable cost |
-| RDS PostgreSQL t3.micro | $10–15 | Database, always running |
-| Application Load Balancer (ALB) | $16 | Fixed, always running |
-| S3 storage | $0.23/GB | Cheap unless storing many PDFs |
-| CloudWatch, NAT, misc | $5–10 | Varies |
-| **Total (running)** | **~$50–70** | |
-| **Total (paused, RDS on)** | **~$30–35** | ECS at 0, RDS still running |
-
-### Cost-Saving Strategies
-
-**1. Scale ECS Fargate to 0 when not in use (saves ~$20–30/month)**
-
-Stop the backend:
-```bash
-aws ecs update-service --cluster atelier-cluster --service atelier-service --desired-count 0 --region eu-west-2
-```
-
-Resume when needed:
-```bash
-aws ecs update-service --cluster atelier-cluster --service atelier-service --desired-count 1 --region eu-west-2
-```
-
-The ALB and RDS will still incur charges, but this is the biggest single saving.
-
-**2. Stop RDS during extended breaks**
-
-```bash
-aws rds stop-db-instance --db-instance-identifier atelier-db --region eu-west-2
-```
-
-Resume:
-```bash
-aws rds start-db-instance --db-instance-identifier atelier-db --region eu-west-2
-```
-
-Note: stopped instances incur storage costs but no compute charges.
-
-**3. Develop locally first**
-
-Keep adding folders and patterns to LocalStack (free) until your data model is stable, then migrate to production in one batch. LocalStack is identical to real S3 and PostgreSQL is the same.
-
-**4. Use AWS Free Tier**
-
-If your account is new, you get 12 months of AWS Free Tier:
-- 750 hours/month of Fargate (enough for ~1 task running 24/7)
-- 750 hours/month of RDS db.t2.micro or db.t3.micro
-- 5 GB of S3 storage
-
-This covers your entire setup for free during the trial period.
-
-### Realistic Cost Scenarios
-
-- **Development (local only):** $0
-- **Minimal production (ECS paused, RDS on):** ~$35/month
-- **Light production (ECS on 8 hrs/day):** ~$60/month
-- **Always-on production:** ~$80–100/month
-
-**Recommendation:** Start with local development, deploy to production for final testing, then scale ECS to 0 between sessions.
-
-## Verification Commands
-
-Run the project checks from the repository root:
+## Checks
 
 ```bash
 make ci
 ```
 
-The CI target runs backend Checkstyle, Maven verification, JaCoCo reporting, frontend dependency installation, ESLint, Vitest coverage, and the frontend production build.
+Runs backend Checkstyle, Maven verify and JaCoCo, then frontend install, ESLint, Vitest coverage and the production build.
 
-Individual checks:
+---
 
-```bash
-cd atelier-backend && ./mvnw clean verify jacoco:report -Dspring.profiles.active=ci
-cd ../atelier-frontend && npm ci && npm run lint && npm test -- --coverage && npm run build
-```
+## API summary
 
-## API Summary
+**Folders**
+- `GET /folder`: list root folders
+- `GET /folder/{folderId}`: get a folder
+- `GET /folder/{parentId}/children`: list child folders
+- `POST /folder`, `POST /folder/{parentId}`: create folders
+- `PUT /folder/{id}`: update a folder
+- `DELETE /folder/{id}`: delete a folder, its descendants and their patterns
 
-### Folders
+**Patterns**
+- `POST /patterns/{folderId}`: upload a PDF
+- `GET /patterns/{folderId}/files`: list patterns
+- `DELETE /patterns/{patternId}`: delete a pattern
+- `GET /patterns/download/{patternId}`: download a pattern
+- `GET /patterns/preview/{patternId}`: get a preview URL
 
-- `GET /folder` — list root folders
-- `GET /folder/{folderId}` — get a folder
-- `GET /folder/{parentId}/children` — list child folders
-- `POST /folder` and `POST /folder/{parentId}` — create folders
-- `PUT /folder/{id}` — update a folder
-- `DELETE /folder/{id}` — delete a folder and its descendants/patterns
+---
 
-### Patterns
+## Security notes
 
-- `POST /patterns/{folderId}` — upload a PDF
-- `GET /patterns/{folderId}/files` — list patterns
-- `DELETE /patterns/{patternId}` — delete a pattern
-- `GET /patterns/download/{patternId}` — download a pattern
-- `GET /patterns/preview/{patternId}` — generate a preview URL
-
-## Security Notes
-
-- Never commit `.env`, `terraform.tfvars`, Terraform state, OAuth client secrets, or AWS access keys.
-- Rotate any credential that has ever been stored in `application-secrets.properties`.
-- Prefer the ECS task role for S3 access and Secrets Manager for runtime secrets; do not pass long-lived AWS keys to production containers.
-
-Login is via Google OAuth2. On successful login, the backend issues a JWT which the frontend stores and sends as a `Bearer` token on subsequent requests. User records store the Google `sub` claim as `googleId` for account linking.
+- Google sign-in is restricted to `ALLOWED_GOOGLE_EMAIL`; set the required `allowed_google_email` Terraform input for each AWS environment.
+- Never commit `.env`, `terraform.tfvars`, `tfplan`, Terraform state, OAuth client secrets or AWS keys.
+- `application-secrets.properties` lives in `src/main/resources`, so it is packaged into the jar and the Docker image. Move it out of `resources/`, add a `.dockerignore`, and make local config use environment variables only.
+- Delete the stale root-level `terraform.tfstate` and `terraform.tfstate.backup`, and the saved `tfplan`.
+- Rotate any credential that was ever stored in `application-secrets.properties`, and remove it from git history before making the repo public.
+- Before sharing publicly, replace hard-coded AWS account IDs, bucket names and CloudFront distribution IDs in the scripts and RUNBOOK with variables.
+- Prefer IAM roles (ECS task role or EC2 instance role) over long-lived access keys.

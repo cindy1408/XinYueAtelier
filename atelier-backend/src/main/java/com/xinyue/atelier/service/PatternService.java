@@ -7,6 +7,7 @@ import com.xinyue.atelier.repository.PatternRepo;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -31,8 +32,8 @@ public class PatternService {
         Folder folder = folderRepo.findById(folderId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
 
+        String key = buildPdfKey(title, pdf);
         try {
-            String key = buildPdfKey(folder.getFolderName(), title, pdf);
             storageService.upload(key, pdf.getBytes(), "application/pdf");
 
             Pattern pattern = new Pattern();
@@ -43,7 +44,13 @@ public class PatternService {
             return patternRepo.save(pattern);
 
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create pattern", e);
+            ResponseStatusException failure =
+                    new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create pattern", e);
+            storageService.deleteAfterFailedWrite(key, failure);
+            throw failure;
+        } catch (RuntimeException e) {
+            storageService.deleteAfterFailedWrite(key, e);
+            throw e;
         }
     }
 
@@ -51,14 +58,14 @@ public class PatternService {
         return patternRepo.findAllByFolderId(folderId);
     }
 
+    @Transactional
     public void delete(UUID patternId) {
         Pattern pattern = findPatternOrThrow(patternId);
 
-        if (pattern.getPdfPath() != null) {
-            storageService.delete(pattern.getPdfPath());
-        }
-
         patternRepo.delete(pattern);
+        if (pattern.getPdfPath() != null) {
+            storageService.deleteAfterCommit(List.of(pattern.getPdfPath()));
+        }
     }
 
     /**
@@ -78,9 +85,9 @@ public class PatternService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pattern not found"));
     }
 
-    private String buildPdfKey(String folderName, String title, MultipartFile pdf) {
+    private String buildPdfKey(String title, MultipartFile pdf) {
         String extension = FilenameUtils.getExtension(pdf.getOriginalFilename());
-        return "patterns/" + safeName(folderName) + "/" + safeName(title) + "." + extension;
+        return "patterns/" + UUID.randomUUID() + "/" + safeName(title) + "." + extension;
     }
 
     private String safeName(String input) {
