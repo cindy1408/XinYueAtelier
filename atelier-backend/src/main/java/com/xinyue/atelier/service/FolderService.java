@@ -5,6 +5,7 @@ import com.xinyue.atelier.Level;
 import com.xinyue.atelier.PatternOrigin;
 import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.model.Folder;
+import com.xinyue.atelier.model.Pattern;
 import com.xinyue.atelier.repository.FolderRepo;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -54,7 +56,6 @@ public class FolderService {
                 .map(folderMapper::toDto);
     }
 
-    @Transactional
     public FolderDto createFolder(
             Integer ref,
             String title,
@@ -84,17 +85,21 @@ public class FolderService {
         folder = folderRepo.save(folder);
 
         if (image != null && !image.isEmpty()) {
+            String imageKey = buildImageKey(folder, image);
             try {
-                String imageKey = uploadImage(folder, image);
+                storageService.upload(imageKey, image.getBytes(), image.getContentType());
                 folder.setImagePath(imageKey);
                 folder = folderRepo.save(folder);
             } catch (IOException e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create folder", e);
+                ResponseStatusException failure =
+                        new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create folder", e);
+                compensateFailedFolderCreate(folder, imageKey, failure);
+                throw failure;
             } catch (RuntimeException e) {
-                // Covers unchecked failures from the storage layer (e.g. AWS
-                // SDK exceptions), which otherwise propagated to callers
-                // unwrapped.
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create folder", e);
+                ResponseStatusException failure =
+                        new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create folder", e);
+                compensateFailedFolderCreate(folder, imageKey, failure);
+                throw failure;
             }
         }
 
@@ -119,14 +124,15 @@ public class FolderService {
         GarmentType parsedGarmentType = parseEnum(GarmentType.class, garmentType);
         PatternOrigin parsedOrigin = parseEnum(PatternOrigin.class, origin);
         Level parsedLevel = parseEnum(Level.class, level);
+        String oldImagePath = folder.getImagePath();
+        String newImagePath = null;
+        Folder updatedFolder;
 
         try {
             if (image != null && !image.isEmpty()) {
-                if (folder.getImagePath() != null) {
-                    storageService.delete(folder.getImagePath());
-                }
-                String imageKey = uploadImage(folder, image);
-                folder.setImagePath(imageKey);
+                newImagePath = buildImageKey(folder, image);
+                storageService.upload(newImagePath, image.getBytes(), image.getContentType());
+                folder.setImagePath(newImagePath);
             }
 
             folder.setRef(ref);
@@ -135,36 +141,72 @@ public class FolderService {
             folder.setOrigin(parsedOrigin);
             folder.setLevel(parsedLevel);
 
-            return folderMapper.toDto(folderRepo.save(folder));
-
-        } catch (IOException | RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update folder", e);
+            updatedFolder = folderRepo.save(folder);
+        } catch (IOException e) {
+            ResponseStatusException failure =
+                    new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update folder", e);
+            if (newImagePath != null) {
+                storageService.deleteAfterFailedWrite(newImagePath, failure);
+            }
+            throw failure;
+        } catch (RuntimeException e) {
+            ResponseStatusException failure =
+                    new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update folder", e);
+            if (newImagePath != null) {
+                storageService.deleteAfterFailedWrite(newImagePath, failure);
+            }
+            throw failure;
         }
+
+        if (newImagePath != null && oldImagePath != null) {
+            storageService.deleteAfterCommit(List.of(oldImagePath));
+        }
+        return folderMapper.toDto(updatedFolder);
     }
 
+    @Transactional
     public void deleteFolder(UUID id) {
         Folder folder = folderRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Folder not found"));
 
-        if (folder.getImagePath() != null) {
-            try {
-                storageService.delete(folder.getImagePath());
-            } catch (RuntimeException e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete folder", e);
-            }
-        }
-
-        // DB delete cascades to subfolders and patterns via CascadeType.ALL
+        List<String> objectKeys = collectObjectKeys(folder);
         folderRepo.delete(folder);
+        if (!objectKeys.isEmpty()) {
+            storageService.deleteAfterCommit(objectKeys);
+        }
     }
 
     // --- Private helpers ---
 
-    private String uploadImage(Folder folder, MultipartFile image) throws IOException {
+    private String buildImageKey(Folder folder, MultipartFile image) {
         String extension = FilenameUtils.getExtension(image.getOriginalFilename());
-        String key = "folders/" + folder.getId() + "/image." + extension;
-        storageService.upload(key, image.getBytes(), image.getContentType());
-        return key;
+        return "folders/" + folder.getId() + "/" + UUID.randomUUID() + "." + extension;
+    }
+
+    private List<String> collectObjectKeys(Folder folder) {
+        List<String> objectKeys = new ArrayList<>();
+        if (folder.getImagePath() != null) {
+            objectKeys.add(folder.getImagePath());
+        }
+        for (Pattern pattern : folder.getPatterns()) {
+            if (pattern.getPdfPath() != null) {
+                objectKeys.add(pattern.getPdfPath());
+            }
+        }
+        for (Folder subFolder : folder.getSubFolders()) {
+            objectKeys.addAll(collectObjectKeys(subFolder));
+        }
+        return objectKeys;
+    }
+
+    private void compensateFailedFolderCreate(Folder folder, String imageKey, RuntimeException failure) {
+        storageService.deleteAfterFailedWrite(imageKey, failure);
+        try {
+            folderRepo.delete(folder);
+        } catch (RuntimeException cleanupFailure) {
+            failure.addSuppressed(cleanupFailure);
+            log.error("Failed to remove folder {} after a failed create operation", folder.getId(), cleanupFailure);
+        }
     }
 
     public Integer getNextAvailableRef(GarmentType garmentType) {

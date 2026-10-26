@@ -67,6 +67,7 @@ module "atelier" {
   db_password          = var.db_password
   google_client_id     = var.google_client_id
   google_client_secret = var.google_client_secret
+  allowed_google_email = var.allowed_google_email
 
   s3_bucket_name       = var.s3_bucket_name
   frontend_bucket_name = "xinyueatelier-frontend"
@@ -84,4 +85,3 @@ module "atelier" {
   api_domain_name   = "api.xyatelier.com"
   route53_zone_name = "xyatelier.com"
 }
-

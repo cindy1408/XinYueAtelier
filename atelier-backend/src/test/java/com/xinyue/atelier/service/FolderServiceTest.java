@@ -5,6 +5,7 @@ import com.xinyue.atelier.Level;
 import com.xinyue.atelier.PatternOrigin;
 import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.model.Folder;
+import com.xinyue.atelier.model.Pattern;
 import com.xinyue.atelier.repository.FolderRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -396,7 +397,7 @@ class FolderServiceTest {
                 folderService.updateFolder(
                         folderId, 1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", image);
 
-                verify(storageService).delete("folders/" + folderId + "/old.png");
+                verify(storageService).deleteAfterCommit(List.of("folders/" + folderId + "/old.png"));
                 verify(storageService).upload(argThat(key -> key.contains("folders/") && key.endsWith(".png")), any(),
                         eq("image/png"));
                 verify(folderRepo).save(folder);
@@ -471,11 +472,12 @@ class FolderServiceTest {
                         .isInstanceOf(ResponseStatusException.class)
                         .hasMessageContaining("Failed to update folder");
 
+                verify(storageService).deleteAfterFailedWrite(anyString(), any(RuntimeException.class));
                 verify(folderRepo, never()).save(any());
         }
 
         @Test
-        void updateFolder_wrapsRuntimeExceptionFromS3DeleteAsInternalServerError() {
+        void updateFolder_schedulesOldImageCleanupAfterSuccessfulSave() {
                 UUID folderId = UUID.randomUUID();
                 Folder folder = new Folder();
                 folder.setId(folderId);
@@ -485,15 +487,16 @@ class FolderServiceTest {
                         "image", "new.png", "image/png", "fake-image-bytes".getBytes());
 
                 when(folderRepo.findById(folderId)).thenReturn(Optional.of(folder));
-                doThrow(new RuntimeException("S3 unavailable"))
-                        .when(storageService).delete(anyString());
+                when(folderRepo.save(folder)).thenReturn(folder);
+                when(folderMapper.toDto(folder)).thenReturn(new FolderDto(
+                        folderId, 1, "My Folder", null,
+                        PatternOrigin.DRAFTED, Level.BEGINNER, GarmentType.COURSE, Collections.emptyList()));
 
-                assertThatThrownBy(() -> folderService.updateFolder(
-                        folderId, 1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", image))
-                        .isInstanceOf(ResponseStatusException.class)
-                        .hasMessageContaining("Failed to update folder");
+                folderService.updateFolder(
+                        folderId, 1, "My Folder", "COURSE", "DRAFTED", "BEGINNER", image);
 
-                verify(folderRepo, never()).save(any());
+                verify(storageService).deleteAfterCommit(List.of("folders/" + folderId + "/old.png"));
+                verify(folderRepo).save(folder);
         }
 
         @Test
@@ -567,16 +570,26 @@ class FolderServiceTest {
         // ---------- deleteFolder: happy path ----------
 
         @Test
-        void deleteFolder_deletesImageFromS3WhenImagePathExists() {
+        void deleteFolder_cleansAllObjectsFromFolderTreeAfterDatabaseDelete() {
                 UUID folderId = UUID.randomUUID();
                 Folder folder = new Folder();
+                folder.setId(folderId);
                 folder.setImagePath("folders/" + folderId + "/image.png");
+                Folder child = new Folder();
+                child.setImagePath("folders/child/image.png");
+                Pattern pattern = new Pattern();
+                pattern.setPdfPath("patterns/child/pattern.pdf");
+                child.setPatterns(List.of(pattern));
+                folder.setSubFolders(List.of(child));
 
                 when(folderRepo.findById(folderId)).thenReturn(Optional.of(folder));
 
                 folderService.deleteFolder(folderId);
 
-                verify(storageService).delete("folders/" + folderId + "/image.png");
+                verify(storageService).deleteAfterCommit(List.of(
+                        "folders/" + folderId + "/image.png",
+                        "folders/child/image.png",
+                        "patterns/child/pattern.pdf"));
                 verify(folderRepo).delete(folder);
         }
 
@@ -610,19 +623,15 @@ class FolderServiceTest {
         }
 
         @Test
-        void deleteFolder_wrapsRuntimeExceptionFromS3DeleteAsInternalServerError() {
+        void deleteFolder_schedulesObjectCleanupAfterDatabaseDelete() {
                 UUID folderId = UUID.randomUUID();
                 Folder folder = new Folder();
                 folder.setImagePath("folders/" + folderId + "/image.png");
 
                 when(folderRepo.findById(folderId)).thenReturn(Optional.of(folder));
-                doThrow(new RuntimeException("S3 unavailable"))
-                        .when(storageService).delete(anyString());
+                folderService.deleteFolder(folderId);
 
-                assertThatThrownBy(() -> folderService.deleteFolder(folderId))
-                        .isInstanceOf(ResponseStatusException.class)
-                        .hasMessageContaining("Failed to delete folder");
-
-                verify(folderRepo, never()).delete(any());
+                verify(folderRepo).delete(folder);
+                verify(storageService).deleteAfterCommit(List.of("folders/" + folderId + "/image.png"));
         }
 }

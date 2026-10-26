@@ -47,4 +47,84 @@ public class Folder {
     @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Pattern> patterns = new ArrayList<>();
+
+    public String getFolderName() {
+        return folderName;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public void setFolderName(String folderName) {
+        this.folderName = folderName;
+    }
+
+    public Integer getRef() {
+        return ref;
+    }
+
+    public void setRef(Integer ref) {
+        this.ref = ref;
+    }
+
+    public String getImagePath() {
+        return imagePath;
+    }
+
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
+    public PatternOrigin getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(PatternOrigin origin) {
+        this.origin = origin;
+    }
+
+    public Level getLevel() {
+        return level;
+    }
+
+    public void setLevel(Level level) {
+        this.level = level;
+    }
+
+    public GarmentType getGarmentType() {
+        return garmentType;
+    }
+
+    public void setGarmentType(GarmentType garmentType) {
+        this.garmentType = garmentType;
+    }
+
+    public Folder getParentFolder() {
+        return parentFolder;
+    }
+
+    public void setParentFolder(Folder parentFolder) {
+        this.parentFolder = parentFolder;
+    }
+
+    public List<Folder> getSubFolders() {
+        return subFolders;
+    }
+
+    public void setSubFolders(List<Folder> subFolders) {
+        this.subFolders = subFolders;
+    }
+
+    public List<Pattern> getPatterns() {
+        return patterns;
+    }
+
+    public void setPatterns(List<Pattern> patterns) {
+        this.patterns = patterns;
+    }
 }

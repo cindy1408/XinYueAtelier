@@ -26,12 +26,13 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      S3_BUCKET: ${S3_BUCKET}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      AWS_REGION: ${AWS_REGION}
-      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
-      APP_FRONTEND_URL: ${APP_FRONTEND_URL}
+      ALLOWED_GOOGLE_EMAIL: ${ALLOWED_GOOGLE_EMAIL}
+      S3_BUCKET: ${S3_BUCKET:-xin-yue-atelier}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
+      AWS_REGION: ${AWS_REGION:-eu-west-2}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8080/login/oauth2/code/google}
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL:-http://localhost:5173}
 
   localstack:
     image: localstack/localstack:4.4.0
@@ -40,9 +41,9 @@ services:
       - "4566:4566"
     environment:
       - SERVICES=s3
-      - DEFAULT_REGION=eu-west-2
+      - DEFAULT_REGION=${AWS_REGION:-eu-west-2}
       - AWS_ENDPOINT_URL=http://localstack:4566
-      - S3_BUCKET=${S3_BUCKET}
+      - S3_BUCKET=${S3_BUCKET:-xin-yue-atelier}
     volumes:
       - "localstack-data:/var/lib/localstack"
       - "./init:/etc/localstack/init/ready.d"

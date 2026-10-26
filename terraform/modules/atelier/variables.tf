@@ -33,6 +33,16 @@ variable "google_client_secret" {
   sensitive = true
 }
 
+variable "allowed_google_email" {
+  description = "Google account email permitted to use this personal instance."
+  type        = string
+
+  validation {
+    condition     = length(trimspace(var.allowed_google_email)) > 0
+    error_message = "allowed_google_email must not be empty."
+  }
+}
+
 variable "s3_bucket_name" {
   description = "Globally unique S3 bucket name for app data (patterns/folders)."
   type        = string

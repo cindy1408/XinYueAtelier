@@ -1,5 +1,6 @@
 package com.xinyue.atelier.controller;
 
+import com.xinyue.atelier.dto.UserDto;
 import com.xinyue.atelier.model.User;
 import com.xinyue.atelier.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -8,9 +9,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -23,17 +21,14 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getMe(@AuthenticationPrincipal OAuth2User oauthUser) {
-
+    public ResponseEntity<UserDto> getMe(@AuthenticationPrincipal OAuth2User oauthUser) {
         User user = userService.getCurrentUser(oauthUser);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", user.getId());
-        response.put("email", user.getEmail());
-        response.put("name", user.getName());
-        response.put("role", user.getRole());
-        response.put("createdAt", user.getCreatedAt());
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new UserDto(
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getRole(),
+                user.getCreatedAt()));
     }
 }

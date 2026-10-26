@@ -4,6 +4,8 @@ import com.xinyue.atelier.dto.FolderDto;
 import com.xinyue.atelier.model.Folder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class FolderMapper {
     private final S3StorageService storageService;
@@ -26,8 +28,6 @@ public class FolderMapper {
                 folder.getOrigin(),
                 folder.getLevel(),
                 folder.getGarmentType(),
-                folder.getSubFolders().stream()
-                        .map(this::toDto)
-                        .toList());
+                List.of());
     }
 }

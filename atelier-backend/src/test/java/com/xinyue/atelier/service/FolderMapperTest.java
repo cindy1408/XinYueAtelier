@@ -91,7 +91,7 @@ class FolderMapperTest {
     }
 
     @Test
-    void toDto_recursivelyMapsSubFolders() {
+    void toDto_doesNotExpandSubFolders() {
         Folder parent = newFolder("Parent", null);
         Folder child1 = newFolder("Child One", parent);
         Folder child2 = newFolder("Child Two", parent);
@@ -99,25 +99,8 @@ class FolderMapperTest {
 
         FolderDto dto = folderMapper.toDto(parent);
 
-        assertThat(dto.children()).hasSize(2);
-        assertThat(dto.children())
-                .extracting(FolderDto::folderName)
-                .containsExactlyInAnyOrder("Child One", "Child Two");
-    }
-
-    @Test
-    void toDto_recursivelyMapsNestedSubFolderImages() {
-        Folder parent = newFolder("Parent", null);
-        Folder child = newFolder("Child", parent);
-        child.setImagePath("folders/child/image.png");
-        parent.setSubFolders(List.of(child));
-
-        String presignedUrl = "https://test-bucket.s3.amazonaws.com/folders/child/image.png?signed=true";
-        when(storageService.presign("folders/child/image.png")).thenReturn(presignedUrl);
-
-        FolderDto dto = folderMapper.toDto(parent);
-
-        assertThat(dto.children().get(0).imagePath()).isEqualTo(presignedUrl);
+        assertThat(dto.children()).isEmpty();
+        verifyNoInteractions(storageService);
     }
 
     private Folder newFolder(String name, Folder parent) {

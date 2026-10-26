@@ -6,6 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -20,6 +22,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -121,6 +124,55 @@ class S3StorageServiceTest {
 
         assertThatThrownBy(() -> storageService.delete("patterns/folder/title.pdf"))
                 .isInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    void deleteAfterCommit_deletesImmediatelyWhenNoTransactionIsActive() {
+        storageService.deleteAfterCommit(List.of("patterns/one.pdf", "patterns/two.pdf"));
+
+        ArgumentCaptor<DeleteObjectRequest> captor = ArgumentCaptor.forClass(DeleteObjectRequest.class);
+        verify(s3Client, times(2)).deleteObject(captor.capture());
+        assertThat(captor.getAllValues())
+                .extracting(DeleteObjectRequest::key)
+                .containsExactly("patterns/one.pdf", "patterns/two.pdf");
+    }
+
+    @Test
+    void deleteAfterCommit_schedulesDeletionUntilCommit() {
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            storageService.deleteAfterCommit(List.of("patterns/one.pdf"));
+
+            verifyNoInteractions(s3Client);
+            TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(TransactionSynchronization::afterCommit);
+
+            verify(s3Client).deleteObject(any(DeleteObjectRequest.class));
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void deleteAfterCommit_doesNotFailCompletedOperationWhenCleanupFails() {
+        when(s3Client.deleteObject(any(DeleteObjectRequest.class)))
+                .thenThrow(SdkClientException.create("Unable to connect to S3"));
+
+        storageService.deleteAfterCommit(List.of("patterns/orphan.pdf"));
+
+        verify(s3Client).deleteObject(any(DeleteObjectRequest.class));
+    }
+
+    @Test
+    void deleteAfterFailedWrite_attachesCleanupFailureToOriginalFailure() {
+        RuntimeException originalFailure = new RuntimeException("database unavailable");
+        when(s3Client.deleteObject(any(DeleteObjectRequest.class)))
+                .thenThrow(SdkClientException.create("Unable to connect to S3"));
+
+        storageService.deleteAfterFailedWrite("patterns/orphan.pdf", originalFailure);
+
+        assertThat(originalFailure.getSuppressed()).hasSize(1);
+        assertThat(originalFailure.getSuppressed()[0]).isInstanceOf(SdkClientException.class);
     }
 
     // ---------- presign (default duration) ----------
